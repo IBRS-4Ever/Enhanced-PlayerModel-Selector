@@ -381,7 +381,7 @@ end
 if CLIENT then
 
 
-local Version = "3.5"
+local Version = "3.6"
 local Menu = { }
 local Frame
 local default_animations = { "idle_all_01", "menu_walk", "pose_standing_02", "pose_standing_03", "idle_fist" }
@@ -1495,6 +1495,9 @@ function Menu.Setup()
 							</tr>
 							<tr align=center>
 								<td><a href="javascript:url.open( 'http://steamcommunity.com/id/berrygaming' )" oncontextmenu="url.copy( 'http://steamcommunity.com/id/berrygaming' )">Berry</a> - Russian</td>
+							</tr>
+							<tr align=center>
+								<td><a href="javascript:url.open( 'http://steamcommunity.com/id/TheRealStann' )" oncontextmenu="url.copy( 'http://steamcommunity.com/id/TheRealStann' )">Stann</a> - Polish</td>
 							</tr>
 						</table>
 						<h2 style="font-size: 10px">Left click: Open in Steam Overlay.<br>Right click: Copy URL to clipboard for use in browser.</h2>
