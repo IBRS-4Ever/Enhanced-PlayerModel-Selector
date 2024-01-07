@@ -2,7 +2,12 @@
 -- Upgraded code by LibertyForce http://steamcommunity.com/id/libertyforce
 -- Based on: https://github.com/garrynewman/garrysmod/blob/1a2c317eeeef691e923453018236cf9f66ee74b4/garrysmod/gamemodes/sandbox/gamemode/editor_player.lua
 
-resource.AddFile("materials/flags64/ch.png")
+local GmodLanguage = string.lower(GetConVar("gmod_language"):GetString())
+
+function EPSLanguageChanged()
+	GmodLanguage = string.lower(GetConVar("gmod_language"):GetString())
+end
+cvars.AddChangeCallback( "gmod_language", EPSLanguageChanged, "EPSLanguageChanged" )
 
 local flag = { FCVAR_REPLICATED }
 if SERVER then flag = { FCVAR_ARCHIVE, FCVAR_REPLICATED } end
@@ -381,7 +386,7 @@ end
 if CLIENT then
 
 
-local Version = "3.7"
+local Version = "3.8"
 local Menu = { }
 local Frame
 local default_animations = { "idle_all_01", "menu_walk", "pose_standing_02", "pose_standing_03", "idle_fist" }
@@ -471,6 +476,7 @@ function Menu.Setup()
 
 	Frame = vgui.Create( "DFrame" )
 	local fw, fh = math.min( ScrW() - 16, 960 ), math.min( ScrH() - 16, 700 )
+	-- Frame:SetSize( ScrW(), ScrH() )
 	Frame:SetSize( fw, fh )
 	Frame:SetTitle( string.format(language.GetPhrase("EPS.Title"),Version) )
 	Frame:SetVisible( true )
@@ -516,9 +522,19 @@ function Menu.Setup()
 			Frame:SetSize( ScrW(), ScrH() )
 			Frame:Center()
 			Frame:SetDraggable( false )
-			Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
+			
+			if GmodLanguage == "ru" then
+				Menu.ApplyButton:SetPos( ScrW() - 580, 30 )
+				Menu.AdvButton:SetPos( ScrW() - 220, 3 )
+			elseif GmodLanguage == "tr" then
+				Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
+				Menu.AdvButton:SetPos( ScrW() - 240, 3 )
+			else
+				Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
+				Menu.AdvButton:SetPos( ScrW() - 200, 3 )
+			end
+			
 			Menu.ResetButton:SetPos( 5, ScrH() - 25 )
-			Menu.AdvButton:SetPos( ScrW() - 200, 3 )
 			maxi_mode = 1
 		elseif maxi_allowed and maxi_mode == 1 then
 			Menu.ApplyButton:SetVisible( false )
@@ -531,11 +547,19 @@ function Menu.Setup()
 			Frame:SetSize( fw, fh )
 			Frame:Center()
 			Frame:SetDraggable( true )
-			Menu.ApplyButton:SetPos( fw - 560, 30 )
+			if GmodLanguage == "ru" then
+				Menu.ApplyButton:SetPos( fw - 580, 30 )
+				Menu.AdvButton:SetPos( fw - 220, 3 )
+			elseif GmodLanguage == "tr" then
+				Menu.ApplyButton:SetPos( fw - 560, 30 )
+				Menu.AdvButton:SetPos( fw - 240, 3 )
+			else
+				Menu.ApplyButton:SetPos( fw - 560, 30 )
+				Menu.AdvButton:SetPos( fw - 200, 3 )
+			end
 			Menu.ApplyButton:SetVisible( true )
 			Menu.ResetButton:SetPos( 5, fh - 25 )
 			Menu.ResetButton:SetVisible( true )
-			Menu.AdvButton:SetPos( fw - 200, 3 )
 			Menu.AdvButton:SetVisible( true )
 			Menu.Right:SetVisible( true )
 			maxi_mode = 0
@@ -545,7 +569,7 @@ function Menu.Setup()
 	local mdl = Frame:Add( "DModelPanel" )
 	mdl:Dock( FILL )
 	--mdl:SetSize( 520, 0 )
-	mdl:SetFOV( 36 )
+	mdl:SetFOV( 36 ) -- PM FOV
 	mdl:SetCamPos( Vector( 0, 0, 0 ) )
 	mdl:SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
 	mdl:SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255, 255 ) )
@@ -574,8 +598,16 @@ function Menu.Setup()
 	end
 
 	Menu.AdvButton = Frame:Add( "DButton" )
-	Menu.AdvButton:SetSize( 100, 18 )
-	Menu.AdvButton:SetPos( fw - 200, 3 )
+	if GmodLanguage == "ru" then
+		Menu.AdvButton:SetSize( 120, 18 )
+		Menu.AdvButton:SetPos( fw - 220, 3 )
+	elseif GmodLanguage == "tr" then
+		Menu.AdvButton:SetSize( 140, 18 )
+		Menu.AdvButton:SetPos( fw - 240, 3 )
+	else
+		Menu.AdvButton:SetSize( 100, 18 )
+		Menu.AdvButton:SetPos( fw - 200, 3 )
+	end
 	Menu.AdvButton:SetText( "#EPS.VisitAddonPage" )
 	Menu.AdvButton.DoClick = function()
 		gui.OpenURL( "http://steamcommunity.com/sharedfiles/filedetails/?id=2247755443" )
@@ -583,11 +615,32 @@ function Menu.Setup()
 	end
 	
 	Menu.ApplyButton = Frame:Add( "DButton" )
-	Menu.ApplyButton:SetSize( 120, 30 )
-	Menu.ApplyButton:SetPos( fw - 560, 30 )
+	if GmodLanguage == "ru" then
+		Menu.ApplyButton:SetSize( 140, 30 )
+		Menu.ApplyButton:SetPos( fw - 580, 30 )
+	else
+		Menu.ApplyButton:SetSize( 120, 30 )
+		Menu.ApplyButton:SetPos( fw - 560, 30 )
+	end
 	Menu.ApplyButton:SetText( "#EPS.ApplyPM" )
 	Menu.ApplyButton:SetEnabled( LocalPlayer():IsAdmin() or GetConVar( "sv_playermodel_selector_instantly" ):GetBool() )
 	Menu.ApplyButton.DoClick = LoadPlayerModel
+	
+	/*
+	Menu.HandsFOVSlider = Frame:Add( "DNumSlider" )
+	Menu.HandsFOVSlider:SetPos( 50, 50 )				-- Set the position
+	Menu.HandsFOVSlider:SetSize( 300, 100 )			-- Set the size
+	Menu.HandsFOVSlider:SetText( "FOV" )	-- Set the text above the slider
+	Menu.HandsFOVSlider:SetMin( 0 )				 	-- Set the minimum number you can slide to
+	Menu.HandsFOVSlider:SetMax( 180 )				-- Set the maximum number you can slide to
+	Menu.HandsFOVSlider:SetDecimals( 0 )				-- Decimal places - zero for whole number
+	
+	Menu.AnimationComboBox = Frame:Add( "DComboBox" )
+	Menu.AnimationComboBox:SetSize( 80, 20 )
+	Menu.AnimationComboBox:SetPos( 5, 30 )
+	Menu.AnimationComboBox:SetText( "Animations" )
+	Menu.AnimationComboBox.DoClick = mdl.DefaultPos
+	*/
 	
 	Menu.ResetButton = Frame:Add( "DButton" )
 	Menu.ResetButton:SetSize( 40, 20 )
@@ -608,13 +661,25 @@ function Menu.Setup()
 		Menu.Right:AddSheet( "#EPS.Model", modeltab, "icon16/user.png" )
 		
 			local t = modeltab:Add( "DLabel" )
-			t:SetPos( 129, 1 )
+			if GmodLanguage == "ru" then
+				t:SetPos( 160, 1 )
+			elseif GmodLanguage == "tr" then
+				t:SetPos( 140, 1 )
+			else
+				t:SetPos( 129, 1 )
+			end
 			--t:SetSize( 100, 20 )
 			t:SetText( "#EPS.Search" )
 			
 			Menu.ModelFilter = modeltab:Add( "DTextEntry" )
-			Menu.ModelFilter:SetPos( 168, 1 )
-			Menu.ModelFilter:SetSize( 246, 20 )
+			
+			if GmodLanguage == "ru" then
+				Menu.ModelFilter:SetPos( 200, 1 )
+				Menu.ModelFilter:SetSize( 200, 20 )
+			else
+				Menu.ModelFilter:SetPos( 168, 1 )
+				Menu.ModelFilter:SetSize( 246, 20 )
+			end
 			Menu.ModelFilter:SetUpdateOnType( true )
 			Menu.ModelFilter.OnValueChange = function() Menu.ModelPopulate() end
 			
@@ -713,13 +778,24 @@ function Menu.Setup()
 		htb.Tab.IsHandsTab = true
 		
 		local t = handtab:Add( "DLabel" )
-			t:SetPos( 129, 1 )
+			if GmodLanguage == "ru" then
+				t:SetPos( 160, 1 )
+			elseif GmodLanguage == "tr" then
+				t:SetPos( 140, 1 )
+			else
+				t:SetPos( 129, 1 )
+			end
 			--t:SetSize( 100, 20 )
 			t:SetText( "#EPS.Search" )
 			
 			Menu.HandsFilter = handtab:Add( "DTextEntry" )
-			Menu.HandsFilter:SetPos( 168, 1 )
-			Menu.HandsFilter:SetSize( 246, 20 )
+			if GmodLanguage == "ru" then
+				Menu.HandsFilter:SetPos( 200, 1 )
+				Menu.HandsFilter:SetSize( 200, 20 )
+			else
+				Menu.HandsFilter:SetPos( 168, 1 )
+				Menu.HandsFilter:SetSize( 246, 20 )
+			end
 			Menu.HandsFilter:SetUpdateOnType( true )
 			Menu.HandsFilter.OnValueChange = function() Menu.HandsPopulate() end
 			
@@ -830,7 +906,11 @@ function Menu.Setup()
 		FavList:SetMultiSelect( true )
 		FavList:AddColumn( "#EPS.Favorites" )
 		FavList:AddColumn( "#EPS.Favorites.Model" )
-		FavList:AddColumn( "#EPS.Favorites.Skin" ):SetFixedWidth( 25 )
+		if GmodLanguage == "ru" or GmodLanguage == "pl" then
+			FavList:AddColumn( "#EPS.Favorites.Skin" ):SetFixedWidth( 40 )
+		else
+			FavList:AddColumn( "#EPS.Favorites.Skin" ):SetFixedWidth( 25 )
+		end
 		FavList:AddColumn( "#EPS.Favorites.Bodygroups" )
 		FavList.DoDoubleClick = function( id, sel )
 			local name = tostring( FavList:GetLine( sel ):GetValue( 1 ) )
@@ -1502,6 +1582,9 @@ function Menu.Setup()
 							<tr align=center>
 								<td><a href="javascript:url.open( 'https://github.com/SheepYhangCN' )" oncontextmenu="url.copy( 'https://github.com/SheepYhangCN' )">憨憨羊の宇航鸽鸽</a> - Traditional Chinese</td>
 							</tr>
+							<tr align=center>
+								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/talhaberkay' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/talhaberkay' )">Matt</a> - Turkish</td>
+							</tr>
 						</table>
 						<h2 style="font-size: 10px">Left click: Open in Steam Overlay.<br>Right click: Copy URL to clipboard for use in browser.</h2>
 					</body>
@@ -1834,7 +1917,7 @@ function Menu.Setup()
 		if ( Menu.IsHandsTabActive() ) then
 			self.WasHandsTab = true
 
-			self:SetFOV( 65 )
+			self:SetFOV( 65 ) -- Hands FOV
 
 			self.Angles = handsang
 			self.Pos = vector_origin
@@ -1848,7 +1931,7 @@ function Menu.Setup()
 		elseif ( self.WasHandsTab ) then -- reset position on tab switch
 			self.WasHandsTab = false
 
-			self:SetFOV( 36 )
+			self:SetFOV( 36 ) -- PM FOV after switching back from Hands Tab
 
 			self.Pos = Vector( -100, 0, -61 )
 			self.Angles = Angle( 0, 0, 0 )
