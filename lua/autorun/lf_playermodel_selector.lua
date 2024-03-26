@@ -1,5 +1,5 @@
 -- Enhanced PlayerModel Selector
--- Upgraded code by LibertyForce http://steamcommunity.com/id/libertyforce
+-- Upgraded code by LibertyForce https://steamcommunity.com/id/libertyforce
 -- Based on: https://github.com/garrynewman/garrysmod/blob/1a2c317eeeef691e923453018236cf9f66ee74b4/garrysmod/gamemodes/sandbox/gamemode/editor_player.lua
 
 local GmodLanguage = string.lower(GetConVar("gmod_language"):GetString())
