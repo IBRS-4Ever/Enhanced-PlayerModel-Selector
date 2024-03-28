@@ -386,10 +386,11 @@ end
 if CLIENT then
 
 
-local Version = "3.8"
+local Version = "3.9"
 local Menu = { }
 local Frame
-local default_animations = { "idle_all_01", "menu_walk", "pose_standing_02", "pose_standing_03", "idle_fist" }
+local default_animations = { "idle_all_01", "menu_walk", "menu_combine", "pose_standing_02", "pose_standing_03", "idle_fist", "menu_gman", "idle_all_scared", "menu_zombie_01", "idle_magic", "walk_ar2" }
+local currentanim = 0
 local Favorites = { }
 --local addon_vox = false
 
@@ -412,6 +413,22 @@ if file.Exists( "lf_playermodel_selector/cl_favorites.txt", "DATA" ) then
 	end
 end
 
+local function RRRotateAroundPoint(pos, ang, point, offset_ang)
+    local mat = Matrix()
+    mat:SetTranslation(pos)
+    mat:SetAngles(ang)
+    mat:Translate(point)
+
+    local rot_mat = Matrix()
+    rot_mat:SetAngles(offset_ang)
+    rot_mat:Invert()
+
+    mat:Mul(rot_mat)
+
+    mat:Translate(-point)
+
+    return mat:GetTranslation(), mat:GetAngles()
+end
 
 CreateClientConVar( "cl_playermodel_selector_force", "1", true, true )
 CreateClientConVar( "cl_playermodel_selector_unlockflexes", "0", false, true )
@@ -471,6 +488,15 @@ local function LoadFavorite( ply, cmd, args )
 end
 concommand.Add( "playermodel_loadfav", LoadFavorite )
 
+
+-- Horrible. I hate Garry's Mod
+local HandIconGenerator = GetRenderTarget("HandIconGenerator", 512, 512)
+local myMat2 = CreateMaterial( "HandIconGenerator_RTMat", "UnlitGeneric", {
+	["$basetexture"] = HandIconGenerator:GetName(), -- Make the material use our render target texture
+	["$translucent"] = 1,
+	["$vertexcolor"] = 1,
+	["$vertexalpha"] = 1,
+} )
 
 function Menu.Setup()
 
@@ -534,11 +560,13 @@ function Menu.Setup()
 				Menu.AdvButton:SetPos( ScrW() - 200, 3 )
 			end
 			
-			Menu.ResetButton:SetPos( 5, ScrH() - 25 )
+			Menu.ResetButton:SetPos( 5, ScrH() - 25 )		 
+			Menu.AnimButton:SetPos( 55, ScrH() - 25 )
 			maxi_mode = 1
 		elseif maxi_allowed and maxi_mode == 1 then
 			Menu.ApplyButton:SetVisible( false )
 			Menu.ResetButton:SetVisible( false )
+			Menu.AnimButton:SetVisible( false )
 			Menu.AdvButton:SetVisible( false )
 			Menu.Right:SetVisible( false )
 			Frame:InvalidateLayout( false )
@@ -559,7 +587,9 @@ function Menu.Setup()
 			end
 			Menu.ApplyButton:SetVisible( true )
 			Menu.ResetButton:SetPos( 5, fh - 25 )
+			Menu.AnimButton:SetPos( 55, fh - 25 )
 			Menu.ResetButton:SetVisible( true )
+			Menu.AnimButton:SetVisible( true )
 			Menu.AdvButton:SetVisible( true )
 			Menu.Right:SetVisible( true )
 			maxi_mode = 0
@@ -581,6 +611,7 @@ function Menu.Setup()
 
 		mdl.Angles = Angle( 0, 0, 0 )
 		mdl.Pos = Vector( -100, 0, -61 )
+		mdl.AngleOffset = Angle( 0, 0, 0 )
 	end
 	mdl.DefaultPos()
 
@@ -610,8 +641,8 @@ function Menu.Setup()
 	end
 	Menu.AdvButton:SetText( "#EPS.VisitAddonPage" )
 	Menu.AdvButton.DoClick = function()
-		gui.OpenURL( "http://steamcommunity.com/sharedfiles/filedetails/?id=2247755443" )
-		SetClipboardText( "http://steamcommunity.com/sharedfiles/filedetails/?id=2247755443" )
+		gui.OpenURL( "https://steamcommunity.com/sharedfiles/filedetails/?id=2247755443" )
+		SetClipboardText( "https://steamcommunity.com/sharedfiles/filedetails/?id=2247755443" )
 	end
 	
 	Menu.ApplyButton = Frame:Add( "DButton" )
@@ -626,28 +657,19 @@ function Menu.Setup()
 	Menu.ApplyButton:SetEnabled( LocalPlayer():IsAdmin() or GetConVar( "sv_playermodel_selector_instantly" ):GetBool() )
 	Menu.ApplyButton.DoClick = LoadPlayerModel
 	
-	/*
-	Menu.HandsFOVSlider = Frame:Add( "DNumSlider" )
-	Menu.HandsFOVSlider:SetPos( 50, 50 )				-- Set the position
-	Menu.HandsFOVSlider:SetSize( 300, 100 )			-- Set the size
-	Menu.HandsFOVSlider:SetText( "FOV" )	-- Set the text above the slider
-	Menu.HandsFOVSlider:SetMin( 0 )				 	-- Set the minimum number you can slide to
-	Menu.HandsFOVSlider:SetMax( 180 )				-- Set the maximum number you can slide to
-	Menu.HandsFOVSlider:SetDecimals( 0 )				-- Decimal places - zero for whole number
-	
-	Menu.AnimationComboBox = Frame:Add( "DComboBox" )
-	Menu.AnimationComboBox:SetSize( 80, 20 )
-	Menu.AnimationComboBox:SetPos( 5, 30 )
-	Menu.AnimationComboBox:SetText( "Animations" )
-	Menu.AnimationComboBox.DoClick = mdl.DefaultPos
-	*/
-	
 	Menu.ResetButton = Frame:Add( "DButton" )
 	Menu.ResetButton:SetSize( 40, 20 )
 	Menu.ResetButton:SetPos( 5, fh - 25 )
 	Menu.ResetButton:SetText( "#EPS.Reset" )
 	Menu.ResetButton.DoClick = mdl.DefaultPos
-	
+	Menu.AnimButton = Frame:Add( "DButton" )
+	Menu.AnimButton:SetSize( 60, 20 )
+	Menu.AnimButton:SetPos( 55, fh - 25 )
+	Menu.AnimButton:SetText( "#EPS.NextAnim" )
+	Menu.AnimButton.DoClick = function()
+		currentanim = (currentanim + 1) % (#default_animations)
+		Menu.PlayPreviewAnimation( mdl, LocalPlayer():GetInfo( "cl_playermodel" ) )
+	end
 	
 	Menu.Right = Frame:Add( "DPropertySheet" )
 	Menu.Right:Dock( RIGHT )
@@ -809,7 +831,7 @@ function Menu.Setup()
 			ModelIconLayout:SetSpaceY( 2 )
 			ModelIconLayout:Dock( FILL )
 			
-			local modelicons = { }
+			local modelicons_forhands = { }
 			
 			
 			local ModelList = handtab:Add( "DListView" )
@@ -854,44 +876,173 @@ function Menu.Setup()
 					end
 				end
 				
-						local icon = ModelIconLayout:Add( "SpawnIcon" )
-						icon:SetSize( 64, 64 )
-						icon:SetSpawnIcon( "icon64/playermodel.png" )
-						--icon:SetModel( model )
-						icon:SetTooltip( "#EPS.Hands.UsePM" )
-						table.insert( modelicons, icon )
-						icon.DoClick = function()
-							RunConsoleCommand( "cl_playerhands", "" )
-							RunConsoleCommand( "cl_playerhandsbodygroups", "0" )
-							RunConsoleCommand( "cl_playerhandsskin", "0" )
-							timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
-						end
+				local icon = ModelIconLayout:Add( "SpawnIcon" )
+				icon:SetSize( 64, 64 )
+				icon:SetSpawnIcon( "icon64/playermodel.png" )
+				--icon:SetModel( model )
+				icon:SetTooltip( "#EPS.Hands.UsePM" )
+				icon.DoClick = function()
+					RunConsoleCommand( "cl_playerhands", "" )
+					RunConsoleCommand( "cl_playerhandsbodygroups", "0" )
+					RunConsoleCommand( "cl_playerhandsskin", "0" )
+					timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
+				end
 						
-						ModelList:AddLine( name, model )
+				ModelList:AddLine( name, model )
+				local exister = {}
 				
 				for name, model in SortedPairs( AllModels ) do
 					
 					if IsInFilter( name ) then
-					
+						local result = player_manager.TranslatePlayerHands( name )
+						if exister[result.model:lower()] then
+							continue
+						else
+							exister[result.model:lower()] = true
+						end
 						local icon = ModelIconLayout:Add( "SpawnIcon" )
 						icon:SetSize( 64, 64 )
 						--icon:InvalidateLayout( true )
-						icon:SetModel( model )
-						icon:SetTooltip( name )
-						table.insert( modelicons, icon )
+						icon:SetModel( "models/kleiner_animations.mdl" )
+						icon:SetTooltip( name .. "\n" .. result.model )
+						icon.ResultList = result
+
+						function icon:Paint( w, h )
+							return true
+						end
+						table.insert( modelicons_forhands, icon )
+
+						function icon:MakeHandIcon()
+							if !self.ResultList then print("EPS Hands: Result list missing.") return end
+
+							local CL_FISTS		= ClientsideModel("models/weapons/c_arms.mdl")
+							local CL_REALHANDS	= ClientsideModel( self.ResultList.model, RENDERGROUP_BOTH )
+
+							CL_FISTS:SetNoDraw( true )
+							CL_FISTS:SetPos( vector_origin )
+							CL_FISTS:SetAngles( angle_zero )
+							CL_REALHANDS:SetNoDraw( true )
+
+							CL_FISTS:ResetSequence( CL_FISTS:LookupSequence( "fists_idle_01" ) )
+
+							CL_REALHANDS:AddEffects( EF_BONEMERGE )
+
+							CL_REALHANDS:SetParent( CL_FISTS )
+
+							local cam_pos = Vector( 0, 0, 0 )
+							local cam_ang = Angle( 4, -18, 0 )
+							local cam_fov = 20
+
+							render.PushRenderTarget( HandIconGenerator )
+								render.OverrideDepthEnable( true, true )
+								render.SetWriteDepthToDestAlpha( false )
+								render.SuppressEngineLighting( true )
+
+								local CL_SHIRT = {
+									{
+										type = MATERIAL_LIGHT_POINT,
+										color = Vector( 1, 1, 1 )*1,
+										pos = Vector( 0, -48, 32 ),
+									},
+									{
+										type = MATERIAL_LIGHT_POINT,
+										color = Vector( -1, -1, -1 )*1,
+										pos = Vector( 0, 32, -64 ),
+									},
+								}
+								
+								render.SetLocalModelLights(CL_SHIRT)
+								render.Clear( 0, 0, 0, 0 )
+								render.ClearDepth( true )
+								render.OverrideAlphaWriteEnable( true, true )
+
+								cam.Start3D( cam_pos, cam_ang, cam_fov, 0, 0, 64, 64, 0.1, 1000 )
+									CL_FISTS:SetupBones()
+									CL_REALHANDS:SetupBones()
+									CL_REALHANDS:DrawModel( STUDIO_TWOPASS )
+								cam.End3D()
+
+								print( "Generating " .. result.model:StripExtension() )
+								local data = render.Capture( {
+									format = "png",
+									x = 0,
+									y = 0,
+									w = 512,
+									h = 512
+								} )
+
+								if !file.Exists("eps_hands", "DATA") then
+									file.CreateDir("eps_hands")
+								end
+
+								local EXPLOSION = string.Explode( "/", result.model:StripExtension(), false )
+								EXPLOSION[#EXPLOSION] = nil
+								EXPLOSION = table.concat( EXPLOSION, "/" )
+								file.CreateDir( "eps_hands/" .. EXPLOSION )
+								local fullpath = "eps_hands/" .. result.model:StripExtension() .. ".png"
+								file.Write( fullpath, data )
+
+								render.OverrideAlphaWriteEnable( false )
+								render.SuppressEngineLighting( false )
+								render.OverrideDepthEnable( false )
+							render.PopRenderTarget()
+							--icon:SetModel("models/kleiner_animations.mdl")
+							icon:SetIcon( "data/eps_hands/" .. result.model:StripExtension() .. ".png" )
+							--icon:SetTooltip( name .. "\n" .. result.model )
+
+							--local tab = {}
+							--tab.ent		= CL_REALHANDS
+							--tab.cam_pos = Vector( 0, 0, 0 )
+							--tab.cam_ang = Angle( 4, -18, 0 )
+							--tab.cam_fov = 20
+
+							--self:RebuildSpawnIconEx( tab )
+
+							CL_FISTS:Remove()
+							CL_REALHANDS:Remove()
+						end
+
+						-- Make a pretty ass icon
+						if !file.Exists( "eps_hands/" .. result.model:StripExtension() .. ".png", "DATA" ) then
+							print("IT DOESN'T EXIST", "eps_hands/" .. result.model:StripExtension() .. ".png")
+							if IsValid(icon) then
+								icon:MakeHandIcon()
+							end
+						else
+							--icon:SetModel("models/kleiner_animations.mdl")
+							icon:SetIcon( "data/eps_hands/" .. result.model:StripExtension() .. ".png" )
+							--icon:SetTooltip( name .. "\n" .. result.model )
+						end
 						icon.DoClick = function()
 							RunConsoleCommand( "cl_playerhands", name )
 							RunConsoleCommand( "cl_playerhandsbodygroups", "0" )
 							RunConsoleCommand( "cl_playerhandsskin", "0" )
 							timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
 						end
-						
+						icon.DoRightClick = function()
+							if IsValid(icon) then
+								icon:MakeHandIcon()
+							end
+						end
+
 						ModelList:AddLine( name, model )
 						
 					end
 					
 				end
-				
+
+				--local thelabel = ModelIconLayout:Add( "DLabel" )
+				--thelabel:SetText("")
+				--function thelabel:Paint( w, h )
+				--	local old = DisableClipping( true )
+				--	local ox, oy = self:GetParent():LocalToScreen()
+
+				--	local nx, ny = self:ScreenToLocal( ox, oy )
+				--	ny = 0 + 64
+				--	draw.SimpleText("Icons may not generate because of jank with spawnicon generation,", "DermaDefault", nx, ny + 0, color_black)
+				--	draw.SimpleText("particularly when others are generating.", "DermaDefault", nx, ny + 12, color_black)
+				--	draw.SimpleText("Press RIGHT-CLICK on an icon to regenerate it manually.", "DermaDefault", nx, ny + 24, color_black)
+				--	DisableClipping( old )
 			end
 			
 			Menu.HandsPopulate()
@@ -1184,6 +1335,13 @@ function Menu.Setup()
 			b.DoClick = function()
 				for _, icon in pairs( modelicons ) do
 					icon:RebuildSpawnIcon()
+				end
+
+				-- local thecount = 0
+				for _, icon in pairs( modelicons_forhands ) do
+					if IsValid(icon) then
+						icon:MakeHandIcon()
+					end
 				end
 			end
 			
@@ -1549,7 +1707,7 @@ function Menu.Setup()
 					</head>
 					<body>
 						<h1>]]..title..[[</h1> 
-						<p>]]..intro..[[</p>
+						<h1>]]..intro..[[</h1>
 						<h2>Compatible Addons</h1>
 						<p>Enhanced Playermodel Selector provides additional functionality with those addons installed:
 						<ul>
@@ -1608,7 +1766,7 @@ function Menu.Setup()
 	end
 
 	function Menu.PlayHandsPreviewAnimation( panel, playermodel )
-		local iSeq = panel.EntityHandsAnim:LookupSequence( "seq_admire" )
+		local iSeq = panel.EntityHandsAnim:LookupSequence( "idle" )
 
 		if ( iSeq > 0 ) then panel.EntityHandsAnim:ResetSequence( iSeq ) end
 	end
@@ -1617,13 +1775,13 @@ function Menu.Setup()
 
 		if ( !panel or !IsValid( panel.Entity ) ) then return end
 
-		local anims = list.Get( "PlayerOptionsAnimations" )
+		-- local anims = list.Get( "PlayerOptionsAnimations" )
 
-		local anim = default_animations[ math.random( 1, #default_animations ) ]
-		if ( anims[ playermodel ] ) then
-			anims = anims[ playermodel ]
-			anim = anims[ math.random( 1, #anims ) ]
-		end
+		local anim = default_animations[ currentanim+1 ]
+		-- if ( anims[ playermodel ] ) then
+		-- 	anims = anims[ playermodel ]
+		-- 	anim = anims[ math.random( 1, #anims ) ]
+		-- end
 
 		local iSeq = panel.Entity:LookupSequence( anim )
 		if ( iSeq > 0 ) then panel.Entity:ResetSequence( iSeq ) end
@@ -1815,7 +1973,7 @@ function Menu.Setup()
 		Menu.Right:InvalidateLayout( true )
 	end
 	
-	local handsAnimModel = Model( "models/weapons/c_arms_combine.mdl" )
+	local handsAnimModel = Model( "models/weapons/chand_checker.mdl" )
 
 	function Menu.UpdateFromConvars()
 		if ( IsValid( mdl.EntityHands ) ) then
@@ -1826,7 +1984,7 @@ function Menu.Setup()
 		end
 		mdl.EntityHandsAnim = ClientsideModel( handsAnimModel, RENDERGROUP_OTHER )
 		mdl.EntityHandsAnim:SetNoDraw( true )
-		mdl.EntityHandsAnim:SetPos( Vector( -100, 0, -61 ) )
+		mdl.EntityHandsAnim:SetPos( Vector( 0, 0, 0 ) )
 
 		if true or ( Menu.IsHandsTabActive() ) then
 			mdl:SetModel( handsAnimModel )
@@ -1895,7 +2053,7 @@ function Menu.Setup()
 	end
 	
 	function mdl:OnMouseWheeled( delta )
-		self.WheelD = delta * -10
+		self.WheelD = delta * -5
 		self.Wheeled = true
 	end
 
@@ -1910,6 +2068,7 @@ function Menu.Setup()
 	end
 
 	local handsang = Angle( 0, 180, 0 )
+	local handspos = Vector( -2, 0, -2 )
 
 	function mdl:LayoutEntity( Entity )
 		if ( self.bAnimated ) then self:RunAnimation() end
@@ -1917,10 +2076,10 @@ function Menu.Setup()
 		if ( Menu.IsHandsTabActive() ) then
 			self.WasHandsTab = true
 
-			self:SetFOV( 65 ) -- Hands FOV
+			self:SetFOV( 45 ) -- Hands FOV
 
 			self.Angles = handsang
-			self.Pos = vector_origin
+			self.Pos = handspos
 
 			self.EntityHandsAnim:SetAngles( self.Angles )
 			self.EntityHandsAnim:SetPos( self.Pos )
@@ -1935,6 +2094,7 @@ function Menu.Setup()
 
 			self.Pos = Vector( -100, 0, -61 )
 			self.Angles = Angle( 0, 0, 0 )
+			self.AngleOffset = Angle( 0, 0, 0 )
 		end
 
 		if ( self.Pressed == MOUSE_LEFT ) then
@@ -1946,14 +2106,14 @@ function Menu.Setup()
 		
 		if ( self.Pressed == MOUSE_RIGHT ) then
 			local mx, my = gui.MousePos()
-			self.Angles = self.Angles - Angle( ( self.PressY*(0.5) or my*(0.5) ) - my*(0.5), 0, ( self.PressX*(-0.5) or mx*(-0.5) ) - mx*(-0.5) )
-			
+			self.AngleOffset = Angle( ( self.PressY*(0.15) or my*(0.15) ) - my*(0.15), 0, ( self.PressX*(-0.15) or mx*(-0.15) ) - mx*(-0.15) )
+			self.Pos, self.Angles = RRRotateAroundPoint(self.Pos, self.Angles, Vector(0, 0, self.Pos.z * -0.5), self.AngleOffset)
 			self.PressX, self.PressY = gui.MousePos()
 		end
 		
 		if ( self.Pressed == MOUSE_MIDDLE ) then
 			local mx, my = gui.MousePos()
-			self.Pos = self.Pos - Vector( 0, ( self.PressX*(0.5) or mx*(0.5) ) - mx*(0.5), ( self.PressY*(-0.5) or my*(-0.5) ) - my*(-0.5) )
+			self.Pos = self.Pos - Vector( 0, ( self.PressX*(0.15) or mx*(0.15) ) - mx*(0.15), ( self.PressY*(-0.15) or my*(-0.15) ) - my*(-0.15) )
 			
 			self.PressX, self.PressY = gui.MousePos()
 		end
