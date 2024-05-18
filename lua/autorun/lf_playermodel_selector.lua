@@ -555,13 +555,20 @@ function Menu.Setup()
 			elseif GmodLanguage == "tr" then
 				Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
 				Menu.AdvButton:SetPos( ScrW() - 240, 3 )
+			elseif GmodLanguage == "de" then
+				Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
+				Menu.AdvButton:SetPos( ScrW() - 240, 3 )
 			else
 				Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
 				Menu.AdvButton:SetPos( ScrW() - 200, 3 )
 			end
 			
-			Menu.ResetButton:SetPos( 5, ScrH() - 25 )		 
-			Menu.AnimButton:SetPos( 55, ScrH() - 25 )
+			Menu.ResetButton:SetPos( 5, ScrH() - 25 )	
+			if GmodLanguage == "de" then
+				Menu.AnimButton:SetPos( 95, ScrH() - 25 )
+			else
+				Menu.AnimButton:SetPos( 55, ScrH() - 25 )
+			end
 			maxi_mode = 1
 		elseif maxi_allowed and maxi_mode == 1 then
 			Menu.ApplyButton:SetVisible( false )
@@ -579,6 +586,9 @@ function Menu.Setup()
 				Menu.ApplyButton:SetPos( fw - 580, 30 )
 				Menu.AdvButton:SetPos( fw - 220, 3 )
 			elseif GmodLanguage == "tr" then
+				Menu.ApplyButton:SetPos( fw - 560, 30 )
+				Menu.AdvButton:SetPos( fw - 240, 3 )
+			elseif GmodLanguage == "de" then
 				Menu.ApplyButton:SetPos( fw - 560, 30 )
 				Menu.AdvButton:SetPos( fw - 240, 3 )
 			else
@@ -635,6 +645,9 @@ function Menu.Setup()
 	elseif GmodLanguage == "tr" then
 		Menu.AdvButton:SetSize( 140, 18 )
 		Menu.AdvButton:SetPos( fw - 240, 3 )
+	elseif GmodLanguage == "de" then
+		Menu.AdvButton:SetSize( 140, 18 )
+		Menu.AdvButton:SetPos( fw - 240, 3 )
 	else
 		Menu.AdvButton:SetSize( 100, 18 )
 		Menu.AdvButton:SetPos( fw - 200, 3 )
@@ -658,13 +671,22 @@ function Menu.Setup()
 	Menu.ApplyButton.DoClick = LoadPlayerModel
 	
 	Menu.ResetButton = Frame:Add( "DButton" )
-	Menu.ResetButton:SetSize( 40, 20 )
+	if GmodLanguage == "de" then
+		Menu.ResetButton:SetSize( 80, 20 )
+	else
+		Menu.ResetButton:SetSize( 40, 20 )
+	end
 	Menu.ResetButton:SetPos( 5, fh - 25 )
 	Menu.ResetButton:SetText( "#EPS.Reset" )
 	Menu.ResetButton.DoClick = mdl.DefaultPos
 	Menu.AnimButton = Frame:Add( "DButton" )
-	Menu.AnimButton:SetSize( 60, 20 )
-	Menu.AnimButton:SetPos( 55, fh - 25 )
+	if GmodLanguage == "de" then
+		Menu.AnimButton:SetSize( 100, 20 )
+		Menu.AnimButton:SetPos( 95, fh - 25 )
+	else
+		Menu.AnimButton:SetSize( 60, 20 )
+		Menu.AnimButton:SetPos( 55, fh - 25 )
+	end
 	Menu.AnimButton:SetText( "#EPS.NextAnim" )
 	Menu.AnimButton.DoClick = function()
 		currentanim = (currentanim + 1) % (#default_animations)
@@ -687,6 +709,8 @@ function Menu.Setup()
 				t:SetPos( 160, 1 )
 			elseif GmodLanguage == "tr" then
 				t:SetPos( 140, 1 )
+			elseif GmodLanguage == "de" then
+				t:SetPos( 160, 1 )
 			else
 				t:SetPos( 129, 1 )
 			end
@@ -696,6 +720,9 @@ function Menu.Setup()
 			Menu.ModelFilter = modeltab:Add( "DTextEntry" )
 			
 			if GmodLanguage == "ru" then
+				Menu.ModelFilter:SetPos( 200, 1 )
+				Menu.ModelFilter:SetSize( 200, 20 )
+			elseif GmodLanguage == "de" then
 				Menu.ModelFilter:SetPos( 200, 1 )
 				Menu.ModelFilter:SetSize( 200, 20 )
 			else
@@ -804,6 +831,8 @@ function Menu.Setup()
 				t:SetPos( 160, 1 )
 			elseif GmodLanguage == "tr" then
 				t:SetPos( 140, 1 )
+			elseif GmodLanguage == "de" then
+				t:SetPos( 160, 1 )
 			else
 				t:SetPos( 129, 1 )
 			end
@@ -812,6 +841,9 @@ function Menu.Setup()
 			
 			Menu.HandsFilter = handtab:Add( "DTextEntry" )
 			if GmodLanguage == "ru" then
+				Menu.HandsFilter:SetPos( 200, 1 )
+				Menu.HandsFilter:SetSize( 200, 20 )
+			elseif GmodLanguage == "de" then
 				Menu.HandsFilter:SetPos( 200, 1 )
 				Menu.HandsFilter:SetSize( 200, 20 )
 			else
@@ -1742,6 +1774,9 @@ function Menu.Setup()
 							</tr>
 							<tr align=center>
 								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/talhaberkay' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/talhaberkay' )">Matt</a> - Turkish</td>
+							</tr>
+							<tr align=center>
+								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/GermanMaKo' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/talhaberkay' )">GermanMaKo</a> - German</td>
 							</tr>
 						</table>
 						<h2 style="font-size: 10px">Left click: Open in Steam Overlay.<br>Right click: Copy URL to clipboard for use in browser.</h2>
