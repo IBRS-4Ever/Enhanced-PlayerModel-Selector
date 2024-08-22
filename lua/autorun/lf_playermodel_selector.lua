@@ -2,6 +2,8 @@
 -- Upgraded code by LibertyForce https://steamcommunity.com/id/libertyforce
 -- Based on: https://github.com/garrynewman/garrysmod/blob/1a2c317eeeef691e923453018236cf9f66ee74b4/garrysmod/gamemodes/sandbox/gamemode/editor_player.lua
 
+include("enhanced_playermodel_selector/default_playermodels.lua")
+
 local GmodLanguage = string.lower(GetConVar("gmod_language"):GetString())
 
 function EPSLanguageChanged()
@@ -386,7 +388,7 @@ end
 if CLIENT then
 
 
-local Version = "3.9"
+local Version = "4.0"
 local Menu = { }
 local Frame
 local default_animations = { "idle_all_01", "menu_walk", "menu_combine", "pose_standing_02", "pose_standing_03", "idle_fist", "menu_gman", "idle_all_scared", "menu_zombie_01", "idle_magic", "walk_ar2" }
@@ -431,6 +433,7 @@ local function RRRotateAroundPoint(pos, ang, point, offset_ang)
 end
 
 CreateClientConVar( "cl_playermodel_selector_force", "1", true, true )
+CreateClientConVar( "cl_playermodel_selector_hide_defaults", "0", true, true )
 CreateClientConVar( "cl_playermodel_selector_unlockflexes", "0", false, true )
 CreateClientConVar( "cl_playermodel_selector_bgcolor_custom", "1", true, true )
 CreateClientConVar( "cl_playermodel_selector_bgcolor_trans", "1", true, true )
@@ -790,27 +793,30 @@ function Menu.Setup()
 				end
 				
 				for name, model in SortedPairs( AllModels ) do
-					
-					if IsInFilter( name ) then
-					
-						local icon = ModelIconLayout:Add( "SpawnIcon" )
-						icon:SetSize( 64, 64 )
-						--icon:InvalidateLayout( true )
-						icon:SetModel( model )
-						icon:SetTooltip( name )
-						table.insert( modelicons, icon )
-						icon.DoClick = function()
-							RunConsoleCommand( "cl_playermodel", name )
-							RunConsoleCommand( "cl_playerbodygroups", "0" )
-							RunConsoleCommand( "cl_playerskin", "0" )
-							RunConsoleCommand( "cl_playerflexes", "0" )
-							-- RunConsoleCommand( "cl_playerhands", "" )
-							RunConsoleCommand( "cl_playerhandsbodygroups", "0" )
-							RunConsoleCommand( "cl_playerhandsskin", "0" )
-							timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
-						end
+					if !(GetConVar("cl_playermodel_selector_hide_defaults"):GetBool() and DefaultPlayerModels[model]) then -- Testing, may have bugs.
 						
-						ModelList:AddLine( name, model )
+						if IsInFilter( name ) then
+						
+							local icon = ModelIconLayout:Add( "SpawnIcon" )
+							icon:SetSize( 64, 64 )
+							--icon:InvalidateLayout( true )
+							icon:SetModel( model )
+							icon:SetTooltip( name )
+							table.insert( modelicons, icon )
+							icon.DoClick = function()
+								RunConsoleCommand( "cl_playermodel", name )
+								RunConsoleCommand( "cl_playerbodygroups", "0" )
+								RunConsoleCommand( "cl_playerskin", "0" )
+								RunConsoleCommand( "cl_playerflexes", "0" )
+								-- RunConsoleCommand( "cl_playerhands", "" )
+								RunConsoleCommand( "cl_playerhandsbodygroups", "0" )
+								RunConsoleCommand( "cl_playerhandsskin", "0" )
+								timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
+							end
+							
+							ModelList:AddLine( name, model )
+							
+						end
 						
 					end
 					
@@ -1335,6 +1341,26 @@ function Menu.Setup()
 			t:DockMargin( 0, 0, 0, 20 )
 			t:SetAutoStretchVertical( true )
 			t:SetText( "#EPS.Settings.Client.TransparentBG.Desc" )
+			t:SetDark( true )
+			t:SetWrap( true )
+			
+			local c = panel:Add( "DCheckBoxLabel" )
+			c.cvar = "cl_playermodel_selector_hide_defaults"
+			c:Dock( TOP )
+			c:DockMargin( 0, 0, 0, 5 )
+			c:SetValue( GetConVar(c.cvar):GetBool() )
+			c:SetText( "#EPS.Settings.Client.HideDefaultPMs" )
+			c:SetDark( true )
+			c:SizeToContents()
+			c.OnChange = function( p, v )
+				RunConsoleCommand( c.cvar, v == true and "1" or "0" )
+			end
+			
+			local t = panel:Add( "DLabel" )
+			t:Dock( TOP )
+			t:DockMargin( 0, 0, 0, 20 )
+			t:SetAutoStretchVertical( true )
+			t:SetText( "#EPS.Settings.Client.HideDefaultPMs.Desc" )
 			t:SetDark( true )
 			t:SetWrap( true )
 			
