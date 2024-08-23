@@ -388,7 +388,7 @@ end
 if CLIENT then
 
 
-local Version = "4.0"
+local Version = "4.1"
 local Menu = { }
 local Frame
 local default_animations = { "idle_all_01", "menu_walk", "menu_combine", "pose_standing_02", "pose_standing_03", "idle_fist", "menu_gman", "idle_all_scared", "menu_zombie_01", "idle_magic", "walk_ar2" }
@@ -437,6 +437,7 @@ CreateClientConVar( "cl_playermodel_selector_hide_defaults", "0", true, true )
 CreateClientConVar( "cl_playermodel_selector_unlockflexes", "0", false, true )
 CreateClientConVar( "cl_playermodel_selector_bgcolor_custom", "1", true, true )
 CreateClientConVar( "cl_playermodel_selector_bgcolor_trans", "1", true, true )
+CreateClientConVar( "cl_playermodel_selector_ignorehands", "1", true, true )
 
 --net.Start("lf_playermodel_client_sync")
 --net.SendToServer()
@@ -500,7 +501,13 @@ local myMat2 = CreateMaterial( "HandIconGenerator_RTMat", "UnlitGeneric", {
 	["$vertexcolor"] = 1,
 	["$vertexalpha"] = 1,
 } )
+local matshiny = Material("models/shiny")
+local hasbgs = Material("eps/hasbgs4.png", "mips smooth") -- or hasbgs3   idk which better
 
+
+function Menu.UpdateFromConvars()
+	-- wah wah dont error ples
+end
 function Menu.Setup()
 
 	Frame = vgui.Create( "DFrame" )
@@ -701,7 +708,7 @@ function Menu.Setup()
 	Menu.Right:SetSize( 430, 0 )
 
 	Menu.Right.OnActiveTabChanged = function( self, oldTab, newTab )
-		timer.Simple( 0, function() Menu.UpdateFromConvars() end )
+		timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
 	end
 		
 		local modeltab = Menu.Right:Add( "DPropertySheet" )
@@ -766,7 +773,7 @@ function Menu.Setup()
 				-- RunConsoleCommand( "cl_playerhands", "" )
 				RunConsoleCommand( "cl_playerhandsbodygroups", "0" )
 				RunConsoleCommand( "cl_playerhandsskin", "0" )
-				timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
+				timer.Simple( 0.3, function() Menu.UpdateFromConvars() end )
 			end
 			
 			local AllModels = player_manager.AllValidModels()
@@ -793,31 +800,29 @@ function Menu.Setup()
 				end
 				
 				for name, model in SortedPairs( AllModels ) do
-					if !(GetConVar("cl_playermodel_selector_hide_defaults"):GetBool() and DefaultPlayerModels[model]) then -- Testing, may have bugs.
-						
-						if IsInFilter( name ) then
-						
-							local icon = ModelIconLayout:Add( "SpawnIcon" )
-							icon:SetSize( 64, 64 )
-							--icon:InvalidateLayout( true )
-							icon:SetModel( model )
-							icon:SetTooltip( name )
-							table.insert( modelicons, icon )
-							icon.DoClick = function()
-								RunConsoleCommand( "cl_playermodel", name )
-								RunConsoleCommand( "cl_playerbodygroups", "0" )
-								RunConsoleCommand( "cl_playerskin", "0" )
-								RunConsoleCommand( "cl_playerflexes", "0" )
-								-- RunConsoleCommand( "cl_playerhands", "" )
-								RunConsoleCommand( "cl_playerhandsbodygroups", "0" )
-								RunConsoleCommand( "cl_playerhandsskin", "0" )
-								timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
-							end
-							
-							ModelList:AddLine( name, model )
-							
+
+					if IsInFilter( name ) then
+						if GetConVar("cl_playermodel_selector_hide_defaults"):GetBool() and DefaultPlayerModels[model] then continue end -- Testing, may have bugs.
+						if GetConVar( "cl_playermodel_selector_ignorehands" ):GetBool() and player_manager.TranslatePlayerHands(name).model == model then continue end -- No
+						local icon = ModelIconLayout:Add( "SpawnIcon" )
+						icon:SetSize( 64, 64 )
+						--icon:InvalidateLayout( true )
+						icon:SetModel( model )
+						icon:SetTooltip( name )
+						table.insert( modelicons, icon )
+						icon.DoClick = function()
+							RunConsoleCommand( "cl_playermodel", name )
+							RunConsoleCommand( "cl_playerbodygroups", "0" )
+							RunConsoleCommand( "cl_playerskin", "0" )
+							RunConsoleCommand( "cl_playerflexes", "0" )
+							-- RunConsoleCommand( "cl_playerhands", "" )
+							RunConsoleCommand( "cl_playerhandsbodygroups", "0" )
+							RunConsoleCommand( "cl_playerhandsskin", "0" )
+							timer.Simple( 0.3, function() Menu.UpdateFromConvars() end )
 						end
-						
+							
+						ModelList:AddLine( name, model )
+							
 					end
 					
 				end
@@ -964,12 +969,14 @@ function Menu.Setup()
 							CL_FISTS:ResetSequence( CL_FISTS:LookupSequence( "fists_idle_01" ) )
 
 							CL_REALHANDS:AddEffects( EF_BONEMERGE )
+							CL_REALHANDS:SetBodyGroups(result.body)
+							CL_REALHANDS:SetSkin(isnumber(result.skin) and result.skin or 0)
 
 							CL_REALHANDS:SetParent( CL_FISTS )
 
 							local cam_pos = Vector( 0, 0, 0 )
-							local cam_ang = Angle( 4, -18, 0 )
-							local cam_fov = 20
+							local cam_ang = Angle( 6, -16.9, 0 )
+							local cam_fov = 17
 
 							render.PushRenderTarget( HandIconGenerator )
 								render.OverrideDepthEnable( true, true )
@@ -990,23 +997,56 @@ function Menu.Setup()
 								}
 								
 								render.SetLocalModelLights(CL_SHIRT)
-								render.Clear( 0, 0, 0, 0 )
+								-- render.Clear(0, 0, 0, 0, true, true)
+								render.Clear(0, 0, 0, 0)
 								render.ClearDepth( true )
 								render.OverrideAlphaWriteEnable( true, true )
 
+
+									-- rendering twice to get good alpha
+								render.SetBlend(1)
+								render.SetColorModulation(1, 1, 1)
+								render.MaterialOverride(matshiny)
+								render.OverrideColorWriteEnable(true, false)
+								
 								cam.Start3D( cam_pos, cam_ang, cam_fov, 0, 0, 64, 64, 0.1, 1000 )
 									CL_FISTS:SetupBones()
 									CL_REALHANDS:SetupBones()
 									CL_REALHANDS:DrawModel( STUDIO_TWOPASS )
 								cam.End3D()
 
+								render.OverrideColorWriteEnable(false, false)
+								render.MaterialOverride()
+
+
+								render.SetWriteDepthToDestAlpha( true )
+								render.OverrideBlend( true, BLEND_ONE, BLEND_ZERO, BLENDFUNC_ADD, BLEND_ZERO, BLEND_ONE, BLENDFUNC_ADD )
+								cam.Start3D( cam_pos, cam_ang, cam_fov, 0, 0, 64, 64, 0.1, 1000 )
+									CL_FISTS:SetupBones()
+									CL_REALHANDS:SetupBones()
+									CL_REALHANDS:DrawModel( STUDIO_TWOPASS )
+								cam.End3D()
+
+								render.MaterialOverride()
+								render.SetWriteDepthToDestAlpha( false )
+
+								render.OverrideBlend( false )
+								render.SuppressEngineLighting(false)
+
+								if CL_REALHANDS:GetNumBodyGroups() > 1 then
+									cam.Start2D()
+										surface.SetDrawColor( 255, 255, 255, 255 )
+										surface.SetMaterial(hasbgs)
+										surface.DrawTexturedRect(0, 0, 64, 64)
+									cam.End2D()
+								end
 								print( "Generating " .. result.model:StripExtension() )
 								local data = render.Capture( {
 									format = "png",
 									x = 0,
 									y = 0,
-									w = 512,
-									h = 512
+									w = 64,
+									h = 64
 								} )
 
 								if !file.Exists("eps_hands", "DATA") then
@@ -1135,7 +1175,7 @@ function Menu.Setup()
 				RunConsoleCommand( "cl_playermodel", Favorites[name].model )
 				RunConsoleCommand( "cl_playerbodygroups", Favorites[name].bodygroups )
 				RunConsoleCommand( "cl_playerskin", Favorites[name].skin )
-				timer.Simple( 0.1, function()
+				timer.Simple( 0.3, function()
 					Menu.UpdateFromConvars()
 				end )
 			end
@@ -1361,6 +1401,27 @@ function Menu.Setup()
 			t:DockMargin( 0, 0, 0, 20 )
 			t:SetAutoStretchVertical( true )
 			t:SetText( "#EPS.Settings.Client.HideDefaultPMs.Desc" )
+			t:SetDark( true )
+			t:SetWrap( true )
+			
+			local c = panel:Add( "DCheckBoxLabel" )
+			c.cvar = "cl_playermodel_selector_ignorehands"
+			c:Dock( TOP )
+			c:DockMargin( 0, 0, 0, 5 )
+			c:SetValue( GetConVar(c.cvar):GetBool() )
+			c:SetText( "#EPS.Settings.Client.IgnoreC_ArmsOnlyPMs" )
+			c:SetDark( true )
+			c:SizeToContents()
+			c.OnChange = function( p, v )
+				RunConsoleCommand( c.cvar, v == true and "1" or "0" )
+				Menu.ModelPopulate()
+			end
+
+			local t = panel:Add( "DLabel" )
+			t:Dock( TOP )
+			t:DockMargin( 0, 0, 0, 20 )
+			t:SetAutoStretchVertical( true )
+			t:SetText( "#EPS.Settings.Client.IgnoreC_ArmsOnlyPMs.Desc" )
 			t:SetDark( true )
 			t:SetWrap( true )
 			
@@ -1735,6 +1796,12 @@ function Menu.Setup()
 								font-size: 15px;
 								color: #5aa9d6;
 								font-weight: bold;
+								margin: 0;
+								padding: 0px 0px 4px 0px;
+							}
+							h3, h4, h5, h6 {
+								margin: 0;
+								padding: 2px 0px 6px 0px;
 							}
 							h1 {
 								font-size: 20px;
@@ -1769,17 +1836,17 @@ function Menu.Setup()
 						<h2>Compatible Addons</h1>
 						<p>Enhanced Playermodel Selector provides additional functionality with those addons installed:
 						<ul>
-							<li><a href="javascript:url.open( 'http://steamcommunity.com/sharedfiles/filedetails/?id=112806637' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=112806637' )">Gmod Legs 3</a></li>
-							<li><a href="javascript:url.open( 'http://steamcommunity.com/sharedfiles/filedetails/?id=742906087' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=742906087' )">TFA-VOX || Player Callouts Redefined</a></li>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=112806637' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=112806637' )">Gmod Legs 3</a></li>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=742906087' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=742906087' )">TFA-VOX || Player Callouts Redefined</a></li>
 						</ul></p>
 						<h2>More addons</h2>
 						<p><ul>
-							<li><a href="javascript:url.open( 'http://steamcommunity.com/sharedfiles/filedetails/?id=624173012' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=624173012' )">Simple Addon Manager</a><br>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=624173012' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=624173012' )">Simple Addon Manager</a><br>
 							<small>Tired of the slow and annoying addon manager included in Gmod? Here comes and easy to use and efficient alternative that allows you to handle even large addon collections.<br>
 							+ Toggle multiple addons at once<br>+ Add tags to your addons<br>+ Cleanup your addons by uninstalling them at once</small><br>&nbsp;</li>
-							<li><a href="javascript:url.open( 'http://steamcommunity.com/sharedfiles/filedetails/?id=492765756' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=492765756' )">Weapon: Setup, Transfer And Restore</a><br>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=492765756' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=492765756' )">Weapon: Setup, Transfer And Restore</a><br>
 							<small>This addon provides an easy way to restore all your weapons and ammo after you die, without having to spawn them again.</small><br>&nbsp;</li>
-							<li><a href="javascript:url.open( 'http://steamcommunity.com/sharedfiles/filedetails/?id=351603470' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=351603470' )">Anti-FriendlyFire (NPC)</a><br>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=351603470' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=351603470' )">Anti-FriendlyFire (NPC)</a><br>
 							<small>If you where ever annoyed by your allies killing each other in friendly fire, which made large NPC battle pretty much useless, then you have just found the solution! This mod allows you to turn off Friendly Fire towards and between NPCs.</small></li>
 						</ul></p>
 						<table align=center>
@@ -1817,6 +1884,7 @@ function Menu.Setup()
 
 	function Menu.MakeNiceName( str )
 		local newname = {}
+		if string.find(str, ".smd") then str = string.sub(str, 0, -5) end
 
 		for _, s in pairs( string.Explode( "_", str ) ) do
 			if ( string.len( s ) == 1 ) then table.insert( newname, string.upper( s ) ) continue end
@@ -1937,10 +2005,31 @@ function Menu.Setup()
 			bgroup.typenum = k
 			bgroup:SetMax( mdl.Entity:GetBodygroupCount( k ) - 1 )
 			bgroup:SetValue( groups[ k + 1 ] or 0 )
-			bgroup.OnValueChanged = Menu.UpdateBodyGroups
+			-- bgroup.OnValueChanged = Menu.UpdateBodyGroups
 			
 			bdcontrolspanel:AddItem( bgroup )
+			
+			local tgroup
+			local submdls = mdl.Entity:GetBodyGroups()[k+1].submodels
+			if istable(submdls) then 
+				local mdl = submdls[tonumber(groups[ k + 1 ] or 0)] or "idk"
+				tgroup = vgui.Create( "DLabel" )
+				tgroup:Dock( TOP )
+				tgroup:DockMargin(10, -15, 0, 0)
+				tgroup:SetText( Menu.MakeNiceName( mdl ))
+				
+				bdcontrolspanel:AddItem( tgroup )
+			end
 
+			bgroup.OnValueChanged = function(something1, val)
+				local submdls = mdl.Entity:GetBodyGroups()[k+1].submodels
+				if istable(submdls) then
+					tgroup:SetText(Menu.MakeNiceName(submdls[math.Round(val)]) or "idk")
+				end
+				
+				Menu.UpdateBodyGroups(something1, val) 
+			end
+			
 			mdl.Entity:SetBodygroup( k, groups[ k + 1 ] or 0 )
 			
 			bgtab.Tab:SetVisible( true )
@@ -1986,6 +2075,26 @@ function Menu.Setup()
 				
 				h__bdcontrolspanel:AddItem( bgroup )
 
+				local tgroup
+				local submdls = mdl.EntityHands:GetBodyGroups()[k+1].submodels
+				if istable(submdls) then 
+					local mdl = submdls[tonumber(groups[ k + 1 ] or 0)] or "idk"
+					tgroup = vgui.Create( "DLabel" )
+					tgroup:Dock( TOP )
+					tgroup:DockMargin(10, -15, 0, 0)
+					tgroup:SetText( Menu.MakeNiceName( mdl ))
+					
+					h__bdcontrolspanel:AddItem( tgroup )
+				end
+	
+				bgroup.OnValueChanged = function(something1, val)
+					local submdls = mdl.EntityHands:GetBodyGroups()[k+1].submodels
+					if istable(submdls) then
+						tgroup:SetText(Menu.MakeNiceName(submdls[math.Round(val)]) or "idk")
+					end
+					
+					Menu.UpdateBodyGroups(something1, val) 
+				end
 				mdl.EntityHands:SetBodygroup( k, groups[ k + 1 ] or 0 )
 				
 				h__bgtab.Tab:SetVisible( true )
@@ -2145,7 +2254,7 @@ function Menu.Setup()
 			self.EntityHandsAnim:SetAngles( self.Angles )
 			self.EntityHandsAnim:SetPos( self.Pos )
 
-			self.EntityHandsAnim:SetCycle( math.Remap((CurTime()/3) % 1, 0, 1, 0.05, 0.95) )
+			self.EntityHandsAnim:SetCycle( math.Remap((CurTime()/8) % 1, 0, 1, 0.01, 0.99) )
 
 			return
 		elseif ( self.WasHandsTab ) then -- reset position on tab switch
