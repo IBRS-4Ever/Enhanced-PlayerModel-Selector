@@ -2,8 +2,6 @@
 -- Upgraded code by LibertyForce https://steamcommunity.com/id/libertyforce
 -- Based on: https://github.com/garrynewman/garrysmod/blob/1a2c317eeeef691e923453018236cf9f66ee74b4/garrysmod/gamemodes/sandbox/gamemode/editor_player.lua
 
-include("enhanced_playermodel_selector/default_playermodels.lua")
-
 local GmodLanguage = string.lower(GetConVar("gmod_language"):GetString())
 
 function EPSLanguageChanged()
@@ -25,11 +23,15 @@ for cvar, def in pairs( convars ) do
 end
 flag = nil
 
+if CLIENT then
+    include("enhanced_playermodel_selector/default_playermodels.lua")
+end
 
 if SERVER then
 
-
 AddCSLuaFile()
+
+include("enhanced_playermodel_selector/default_playermodels.lua")
 
 --util.AddNetworkString("lf_playermodel_client_sync")
 util.AddNetworkString("lf_playermodel_cvar_change")

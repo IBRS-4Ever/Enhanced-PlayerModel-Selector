@@ -1,4 +1,6 @@
 
+AddCSLuaFile()
+
 DefaultPlayerModels = {
 	["models/player/alyx.mdl"] = true,
 	["models/player/barney.mdl"] = true,
