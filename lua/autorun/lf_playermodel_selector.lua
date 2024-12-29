@@ -1838,40 +1838,40 @@ function Menu.Setup()
 						<h2>Compatible Addons</h1>
 						<p>Enhanced Playermodel Selector provides additional functionality with those addons installed:
 						<ul>
-							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=112806637' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=112806637' )">Gmod Legs 3</a></li>
-							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=742906087' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=742906087' )">TFA-VOX || Player Callouts Redefined</a></li>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=112806637' )" oncontextmenu="url.copy( 'https://steamcommunity.com/sharedfiles/filedetails/?id=112806637' )">Gmod Legs 3</a></li>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=742906087' )" oncontextmenu="url.copy( 'https://steamcommunity.com/sharedfiles/filedetails/?id=742906087' )">TFA-VOX || Player Callouts Redefined</a></li>
 						</ul></p>
 						<h2>More addons</h2>
 						<p><ul>
-							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=624173012' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=624173012' )">Simple Addon Manager</a><br>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=624173012' )" oncontextmenu="url.copy( 'https://steamcommunity.com/sharedfiles/filedetails/?id=624173012' )">Simple Addon Manager</a><br>
 							<small>Tired of the slow and annoying addon manager included in Gmod? Here comes and easy to use and efficient alternative that allows you to handle even large addon collections.<br>
 							+ Toggle multiple addons at once<br>+ Add tags to your addons<br>+ Cleanup your addons by uninstalling them at once</small><br>&nbsp;</li>
-							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=492765756' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=492765756' )">Weapon: Setup, Transfer And Restore</a><br>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=492765756' )" oncontextmenu="url.copy( 'https://steamcommunity.com/sharedfiles/filedetails/?id=492765756' )">Weapon: Setup, Transfer And Restore</a><br>
 							<small>This addon provides an easy way to restore all your weapons and ammo after you die, without having to spawn them again.</small><br>&nbsp;</li>
-							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=351603470' )" oncontextmenu="url.copy( 'http://steamcommunity.com/sharedfiles/filedetails/?id=351603470' )">Anti-FriendlyFire (NPC)</a><br>
+							<li><a href="javascript:url.open( 'https://steamcommunity.com/sharedfiles/filedetails/?id=351603470' )" oncontextmenu="url.copy( 'https://steamcommunity.com/sharedfiles/filedetails/?id=351603470' )">Anti-FriendlyFire (NPC)</a><br>
 							<small>If you where ever annoyed by your allies killing each other in friendly fire, which made large NPC battle pretty much useless, then you have just found the solution! This mod allows you to turn off Friendly Fire towards and between NPCs.</small></li>
 						</ul></p>
 						<table align=center>
 							<tr align=center>
-								<th><h1>Translators:</h1></th>
+								<th><h1>Translators:</h1></th> <th><h1>Language:</h1></th>
 							</tr>
 							<tr align=center>
-								<td><a href="javascript:url.open( 'http://steamcommunity.com/id/IBRS-4Ever' )" oncontextmenu="url.copy( 'http://steamcommunity.com/id/IBRS-4Ever' )">Insane Black Rock Shooter</a> - Simplified Chinese</td>
+								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/IBRS-4Ever' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/IBRS-4Ever' )">Insane Black Rock Shooter</a></td> <td>Simplified Chinese</td>
 							</tr>
 							<tr align=center>
-								<td><a href="javascript:url.open( 'http://steamcommunity.com/id/berrygaming' )" oncontextmenu="url.copy( 'http://steamcommunity.com/id/berrygaming' )">Berry</a> - Russian</td>
+								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/berrygaming' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/berrygaming' )">Berry</a></td> <td>Russian</td>
 							</tr>
 							<tr align=center>
-								<td><a href="javascript:url.open( 'http://steamcommunity.com/id/TheRealStann' )" oncontextmenu="url.copy( 'http://steamcommunity.com/id/TheRealStann' )">Stann</a> - Polish</td>
+								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/TheRealStann' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/TheRealStann' )">Stann</a></td> <td>Polish</td>
 							</tr>
 							<tr align=center>
-								<td><a href="javascript:url.open( 'https://github.com/SheepYhangCN' )" oncontextmenu="url.copy( 'https://github.com/SheepYhangCN' )">憨憨羊の宇航鸽鸽</a> - Traditional Chinese</td>
+								<td><a href="javascript:url.open( 'https://github.com/SheepYhangCN' )" oncontextmenu="url.copy( 'https://github.com/SheepYhangCN' )">憨憨羊の宇航鸽鸽</a></td> <td>Traditional Chinese</td>
 							</tr>
 							<tr align=center>
-								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/talhaberkay' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/talhaberkay' )">Matt</a> - Turkish</td>
+								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/talhaberkay' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/talhaberkay' )">Tora</a></td> <td>Turkish</td>
 							</tr>
 							<tr align=center>
-								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/GermanMaKo' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/talhaberkay' )">GermanMaKo</a> - German</td>
+								<td><a href="javascript:url.open( 'https://steamcommunity.com/id/GermanMaKo' )" oncontextmenu="url.copy( 'https://steamcommunity.com/id/talhaberkay' )">GermanMaKo</a></td> <td>German</td>
 							</tr>
 						</table>
 						<h2 style="font-size: 10px">Left click: Open in Steam Overlay.<br>Right click: Copy URL to clipboard for use in browser.</h2>
