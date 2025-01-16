@@ -2,12 +2,7 @@
 -- Upgraded code by LibertyForce https://steamcommunity.com/id/libertyforce
 -- Based on: https://github.com/garrynewman/garrysmod/blob/1a2c317eeeef691e923453018236cf9f66ee74b4/garrysmod/gamemodes/sandbox/gamemode/editor_player.lua
 
-local GmodLanguage = string.lower(GetConVar("gmod_language"):GetString())
-
-function EPSLanguageChanged()
-	GmodLanguage = string.lower(GetConVar("gmod_language"):GetString())
-end
-cvars.AddChangeCallback( "gmod_language", EPSLanguageChanged, "EPSLanguageChanged" )
+include("enhanced_playermodel_selector/default_playermodels.lua")
 
 local flag = { FCVAR_REPLICATED }
 if SERVER then flag = { FCVAR_ARCHIVE, FCVAR_REPLICATED } end
@@ -23,15 +18,9 @@ for cvar, def in pairs( convars ) do
 end
 flag = nil
 
-if CLIENT then
-    include("enhanced_playermodel_selector/default_playermodels.lua")
-end
-
 if SERVER then
 
 AddCSLuaFile()
-
-include("enhanced_playermodel_selector/default_playermodels.lua")
 
 --util.AddNetworkString("lf_playermodel_client_sync")
 util.AddNetworkString("lf_playermodel_cvar_change")
@@ -392,7 +381,7 @@ if CLIENT then
 
 local Version = "4.1"
 local Menu = { }
-local Frame
+local MainWindow
 local default_animations = { "idle_all_01", "menu_walk", "menu_combine", "pose_standing_02", "pose_standing_03", "idle_fist", "menu_gman", "idle_all_scared", "menu_zombie_01", "idle_magic", "walk_ar2" }
 local currentanim = 0
 local Favorites = { }
@@ -441,12 +430,6 @@ CreateClientConVar( "cl_playermodel_selector_bgcolor_custom", "1", true, true )
 CreateClientConVar( "cl_playermodel_selector_bgcolor_trans", "1", true, true )
 CreateClientConVar( "cl_playermodel_selector_ignorehands", "1", true, true )
 
---net.Start("lf_playermodel_client_sync")
---net.SendToServer()
---net.Receive("lf_playermodel_client_sync", function()
---	addon_vox = net.ReadBool()
---end )
-
 hook.Add( "PostGamemodeLoaded", "lf_playermodel_sboxcvars", function()
 	CreateConVar( "cl_playercolor", "0.24 0.34 0.41", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The value is a Vector - so between 0-1 - not between 0-255" )
 	CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The value is a Vector - so between 0-1 - not between 0-255" )
@@ -460,14 +443,14 @@ end )
 
 
 local function KeyboardOn( pnl )
-	if ( IsValid( Frame ) and IsValid( pnl ) and pnl:HasParent( Frame ) ) then
-		Frame:SetKeyboardInputEnabled( true )
+	if ( IsValid( MainWindow ) and IsValid( pnl ) and pnl:HasParent( MainWindow ) ) then
+		MainWindow:SetKeyboardInputEnabled( true )
 	end
 end
 hook.Add( "OnTextEntryGetFocus", "lf_playermodel_keyboard_on", KeyboardOn )
 local function KeyboardOff( pnl )
-	if ( IsValid( Frame ) and IsValid( pnl ) and pnl:HasParent( Frame ) ) then
-		Frame:SetKeyboardInputEnabled( false )
+	if ( IsValid( MainWindow ) and IsValid( pnl ) and pnl:HasParent( MainWindow ) ) then
+		MainWindow:SetKeyboardInputEnabled( false )
 	end
 end
 hook.Add( "OnTextEntryLoseFocus", "lf_playermodel_keyboard_off", KeyboardOff )
@@ -512,18 +495,17 @@ function Menu.UpdateFromConvars()
 end
 function Menu.Setup()
 
-	Frame = vgui.Create( "DFrame" )
+	MainWindow = vgui.Create( "DFrame" )
 	local fw, fh = math.min( ScrW() - 16, 960 ), math.min( ScrH() - 16, 700 )
-	-- Frame:SetSize( ScrW(), ScrH() )
-	Frame:SetSize( fw, fh )
-	Frame:SetTitle( string.format(language.GetPhrase("EPS.Title"),Version) )
-	Frame:SetVisible( true )
-	Frame:SetDraggable( true )
-	Frame:SetScreenLock( false )
-	Frame:ShowCloseButton( true )
-	Frame:Center()
-	Frame:MakePopup()
-	Frame:SetKeyboardInputEnabled( false )
+	MainWindow:SetSize( fw, fh )
+	MainWindow:SetTitle( string.format(language.GetPhrase("EPS.Title"),Version) )
+	MainWindow:SetVisible( true )
+	MainWindow:SetDraggable( true )
+	MainWindow:SetScreenLock( false )
+	MainWindow:ShowCloseButton( true )
+	MainWindow:Center()
+	MainWindow:MakePopup()
+	MainWindow:SetKeyboardInputEnabled( false )
 	local r, g, b = 97, 100, 102
 	if GetConVar( "cl_playermodel_selector_bgcolor_custom" ):GetBool() then
 		local bgcolor = string.Explode( " ", GetConVar( "cl_playercolor" ):GetString() )
@@ -537,90 +519,68 @@ function Menu.Setup()
 		end
 	end
 	local a = GetConVar( "cl_playermodel_selector_bgcolor_trans" ):GetBool() == true and 127 or 255
-	Frame.Paint = function( self, w, h )
+	MainWindow.Paint = function( self, w, h )
 		draw.RoundedBox( 10, 0, 0, w, h, Color( r, g, b, a ) ) return true
 	end
 	
-	Frame.lblTitle:SetTextColor( Color( 0, 0, 0, 255 ) )
-	Frame.lblTitle.Paint = function ( self, w, h )
-		draw.SimpleTextOutlined( Frame.lblTitle:GetText(), "DermaDefaultBold", 1, 2, Color( 255, 255, 255, 255), 0, 0, 1, Color( 0, 0, 0, 255) ) return true
+	MainWindow.lblTitle:SetTextColor( Color( 0, 0, 0, 255 ) )
+	MainWindow.lblTitle.Paint = function ( self, w, h )
+		draw.SimpleTextOutlined( MainWindow.lblTitle:GetText(), "DermaDefaultBold", 1, 2, Color( 255, 255, 255, 255), 0, 0, 1, Color( 0, 0, 0, 255) ) return true
 	end
 	
-	Frame.btnMinim:SetEnabled( true )
-	Frame.btnMinim.DoClick = function()
-		Frame:SetVisible( false )
+	MainWindow.btnMinim:SetEnabled( true )
+	MainWindow.btnMinim.DoClick = function()
+		MainWindow:SetVisible( false )
 	end
-	--Frame.btnMaxim.Paint = function( panel, w, h ) derma.SkinHook( "Paint", "WindowMinimizeButton", panel, w, h ) end
+	--MainWindow.btnMaxim.Paint = function( panel, w, h ) derma.SkinHook( "Paint", "WindowMinimizeButton", panel, w, h ) end
 	local maxi_allowed = false
 	local maxi_mode = 0
 	if ScrW() > fw and ScrH() > fh then maxi_allowed = true end
-	Frame.btnMaxim:SetEnabled( maxi_allowed )
-	Frame.btnMaxim.DoClick = function()
+	MainWindow.btnMaxim:SetEnabled( maxi_allowed )
+	MainWindow.btnMaxim.DoClick = function()
+		local WorkshopButtonWidth, WorkshopButtonHeight = Menu.WorkshopButton:GetTextSize()
+		local ApplyButtonWidth, ApplyButtonHeight = Menu.ApplyButton:GetTextSize()
+		local ResetButtonWidth, ResetButtonHeight = Menu.ResetButton:GetTextSize()
+		local AnimButtonWidth, AnimButtonHeight = Menu.AnimButton:GetTextSize()
 		if maxi_allowed and maxi_mode == 0 then
-			Frame:SetSize( ScrW(), ScrH() )
-			Frame:Center()
-			Frame:SetDraggable( false )
+			MainWindow:SetSize( ScrW(), ScrH() )
+			MainWindow:Center()
+			MainWindow:SetDraggable( false )
+	
+			Menu.ApplyButton:SetPos( ScrW() - (ApplyButtonWidth + 480), 30 )
+			Menu.WorkshopButton:SetPos( ScrW() - (WorkshopButtonWidth + 110), 6 )
 			
-			if GmodLanguage == "ru" then
-				Menu.ApplyButton:SetPos( ScrW() - 580, 30 )
-				Menu.AdvButton:SetPos( ScrW() - 220, 3 )
-			elseif GmodLanguage == "tr" then
-				Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
-				Menu.AdvButton:SetPos( ScrW() - 240, 3 )
-			elseif GmodLanguage == "de" then
-				Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
-				Menu.AdvButton:SetPos( ScrW() - 240, 3 )
-			else
-				Menu.ApplyButton:SetPos( ScrW() - 560, 30 )
-				Menu.AdvButton:SetPos( ScrW() - 200, 3 )
-			end
-			
-			Menu.ResetButton:SetPos( 5, ScrH() - 25 )	
-			if GmodLanguage == "de" then
-				Menu.AnimButton:SetPos( 95, ScrH() - 25 )
-			else
-				Menu.AnimButton:SetPos( 55, ScrH() - 25 )
-			end
+			Menu.ResetButton:SetPos( 5, ScrH() - 25 )
+			Menu.AnimButton:SetPos( 20 + ResetButtonWidth, ScrH() - 25 )
 			maxi_mode = 1
 		elseif maxi_allowed and maxi_mode == 1 then
 			Menu.ApplyButton:SetVisible( false )
 			Menu.ResetButton:SetVisible( false )
 			Menu.AnimButton:SetVisible( false )
-			Menu.AdvButton:SetVisible( false )
+			Menu.WorkshopButton:SetVisible( false )
 			Menu.Right:SetVisible( false )
-			Frame:InvalidateLayout( false )
+			MainWindow:InvalidateLayout( false )
 			maxi_mode = 2
 		else
-			Frame:SetSize( fw, fh )
-			Frame:Center()
-			Frame:SetDraggable( true )
-			if GmodLanguage == "ru" then
-				Menu.ApplyButton:SetPos( fw - 580, 30 )
-				Menu.AdvButton:SetPos( fw - 220, 3 )
-			elseif GmodLanguage == "tr" then
-				Menu.ApplyButton:SetPos( fw - 560, 30 )
-				Menu.AdvButton:SetPos( fw - 240, 3 )
-			elseif GmodLanguage == "de" then
-				Menu.ApplyButton:SetPos( fw - 560, 30 )
-				Menu.AdvButton:SetPos( fw - 240, 3 )
-			else
-				Menu.ApplyButton:SetPos( fw - 560, 30 )
-				Menu.AdvButton:SetPos( fw - 200, 3 )
-			end
+			MainWindow:SetSize( fw, fh )
+			MainWindow:Center()
+			MainWindow:SetDraggable( true )
+
+			Menu.ApplyButton:SetPos( fw - (ApplyButtonWidth + 480), 30 )
 			Menu.ApplyButton:SetVisible( true )
 			Menu.ResetButton:SetPos( 5, fh - 25 )
-			Menu.AnimButton:SetPos( 55, fh - 25 )
+			Menu.AnimButton:SetPos( 20 + ResetButtonWidth, fh - 25 )
 			Menu.ResetButton:SetVisible( true )
 			Menu.AnimButton:SetVisible( true )
-			Menu.AdvButton:SetVisible( true )
+			Menu.WorkshopButton:SetPos( fw - (WorkshopButtonWidth + 110), 6 )
+			Menu.WorkshopButton:SetVisible( true )
 			Menu.Right:SetVisible( true )
 			maxi_mode = 0
 		end
 	end
 
-	local mdl = Frame:Add( "DModelPanel" )
+	local mdl = MainWindow:Add( "DModelPanel" )
 	mdl:Dock( FILL )
-	--mdl:SetSize( 520, 0 )
 	mdl:SetFOV( 36 ) -- PM FOV
 	mdl:SetCamPos( Vector( 0, 0, 0 ) )
 	mdl:SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
@@ -650,62 +610,42 @@ function Menu.Setup()
 		end
 	end
 
-	Menu.AdvButton = Frame:Add( "DButton" )
-	if GmodLanguage == "ru" then
-		Menu.AdvButton:SetSize( 120, 18 )
-		Menu.AdvButton:SetPos( fw - 220, 3 )
-	elseif GmodLanguage == "tr" then
-		Menu.AdvButton:SetSize( 140, 18 )
-		Menu.AdvButton:SetPos( fw - 240, 3 )
-	elseif GmodLanguage == "de" then
-		Menu.AdvButton:SetSize( 140, 18 )
-		Menu.AdvButton:SetPos( fw - 240, 3 )
-	else
-		Menu.AdvButton:SetSize( 100, 18 )
-		Menu.AdvButton:SetPos( fw - 200, 3 )
-	end
-	Menu.AdvButton:SetText( "#EPS.VisitAddonPage" )
-	Menu.AdvButton.DoClick = function()
+	Menu.WorkshopButton = MainWindow:Add( "DButton" )
+	Menu.WorkshopButton:SetText( "#EPS.VisitAddonPage" )
+	local Width, Height = Menu.WorkshopButton:GetTextSize()
+	Menu.WorkshopButton:SetSize( Width + 8, 18 )
+	Menu.WorkshopButton:SetPos( fw - (Width + 110), 6 )
+	Menu.WorkshopButton.DoClick = function()
 		gui.OpenURL( "https://steamcommunity.com/sharedfiles/filedetails/?id=2247755443" )
 		SetClipboardText( "https://steamcommunity.com/sharedfiles/filedetails/?id=2247755443" )
 	end
 	
-	Menu.ApplyButton = Frame:Add( "DButton" )
-	if GmodLanguage == "ru" then
-		Menu.ApplyButton:SetSize( 140, 30 )
-		Menu.ApplyButton:SetPos( fw - 580, 30 )
-	else
-		Menu.ApplyButton:SetSize( 120, 30 )
-		Menu.ApplyButton:SetPos( fw - 560, 30 )
-	end
+	Menu.ApplyButton = MainWindow:Add( "DButton" )
 	Menu.ApplyButton:SetText( "#EPS.ApplyPM" )
+	local ApplyButtonWidth, ApplyButtonHeight = Menu.ApplyButton:GetTextSize()
+	Menu.ApplyButton:SetPos( fw - (ApplyButtonWidth + 480), 30 )
+	Menu.ApplyButton:SetSize( ApplyButtonWidth + 30, 30 )
 	Menu.ApplyButton:SetEnabled( LocalPlayer():IsAdmin() or GetConVar( "sv_playermodel_selector_instantly" ):GetBool() )
 	Menu.ApplyButton.DoClick = LoadPlayerModel
 	
-	Menu.ResetButton = Frame:Add( "DButton" )
-	if GmodLanguage == "de" then
-		Menu.ResetButton:SetSize( 80, 20 )
-	else
-		Menu.ResetButton:SetSize( 40, 20 )
-	end
-	Menu.ResetButton:SetPos( 5, fh - 25 )
+	Menu.ResetButton = MainWindow:Add( "DButton" )
 	Menu.ResetButton:SetText( "#EPS.Reset" )
+	local ResetButtonWidth, ResetButtonHeight = Menu.ResetButton:GetTextSize()
+	Menu.ResetButton:SetSize( ResetButtonWidth + 8, 20 )
+	Menu.ResetButton:SetPos( 5, fh - 25 )
 	Menu.ResetButton.DoClick = mdl.DefaultPos
-	Menu.AnimButton = Frame:Add( "DButton" )
-	if GmodLanguage == "de" then
-		Menu.AnimButton:SetSize( 100, 20 )
-		Menu.AnimButton:SetPos( 95, fh - 25 )
-	else
-		Menu.AnimButton:SetSize( 60, 20 )
-		Menu.AnimButton:SetPos( 55, fh - 25 )
-	end
+	
+	Menu.AnimButton = MainWindow:Add( "DButton" )
 	Menu.AnimButton:SetText( "#EPS.NextAnim" )
+	local AnimButtonWidth, AnimButtonHeight = Menu.AnimButton:GetTextSize()
+	Menu.AnimButton:SetSize( AnimButtonWidth + 8, 20 )
+	Menu.AnimButton:SetPos( 20 + ResetButtonWidth, fh - 25 )
 	Menu.AnimButton.DoClick = function()
 		currentanim = (currentanim + 1) % (#default_animations)
 		Menu.PlayPreviewAnimation( mdl, LocalPlayer():GetInfo( "cl_playermodel" ) )
 	end
 	
-	Menu.Right = Frame:Add( "DPropertySheet" )
+	Menu.Right = MainWindow:Add( "DPropertySheet" )
 	Menu.Right:Dock( RIGHT )
 	Menu.Right:SetSize( 430, 0 )
 
@@ -716,33 +656,13 @@ function Menu.Setup()
 		local modeltab = Menu.Right:Add( "DPropertySheet" )
 		Menu.Right:AddSheet( "#EPS.Model", modeltab, "icon16/user.png" )
 		
-			local t = modeltab:Add( "DLabel" )
-			if GmodLanguage == "ru" then
-				t:SetPos( 160, 1 )
-			elseif GmodLanguage == "tr" then
-				t:SetPos( 140, 1 )
-			elseif GmodLanguage == "de" then
-				t:SetPos( 160, 1 )
-			else
-				t:SetPos( 129, 1 )
-			end
-			--t:SetSize( 100, 20 )
-			t:SetText( "#EPS.Search" )
-			
-			Menu.ModelFilter = modeltab:Add( "DTextEntry" )
-			
-			if GmodLanguage == "ru" then
-				Menu.ModelFilter:SetPos( 200, 1 )
-				Menu.ModelFilter:SetSize( 200, 20 )
-			elseif GmodLanguage == "de" then
-				Menu.ModelFilter:SetPos( 200, 1 )
-				Menu.ModelFilter:SetSize( 200, 20 )
-			else
-				Menu.ModelFilter:SetPos( 168, 1 )
-				Menu.ModelFilter:SetSize( 246, 20 )
-			end
-			Menu.ModelFilter:SetUpdateOnType( true )
-			Menu.ModelFilter.OnValueChange = function() Menu.ModelPopulate() end
+		Menu.ModelFilter = modeltab:Add( "DTextEntry" )
+		Menu.ModelFilter:SetPlaceholderText( "#EPS.Search" )
+		Menu.ModelFilter:DockMargin( 8, 0, 8, 8 )
+		Menu.ModelFilter:Dock( TOP )
+		
+		Menu.ModelFilter:SetUpdateOnType( true )
+		Menu.ModelFilter.OnValueChange = function() Menu.ModelPopulate() end
 			
 			local ModelScroll = modeltab:Add( "DScrollPanel" )
 			modeltab:AddSheet( "#EPS.Model.Icons", ModelScroll, "icon16/application_view_tile.png" )
@@ -804,7 +724,7 @@ function Menu.Setup()
 				for name, model in SortedPairs( AllModels ) do
 
 					if IsInFilter( name ) then
-						if GetConVar("cl_playermodel_selector_hide_defaults"):GetBool() and DefaultPlayerModels[model] then continue end -- Testing, may have bugs.
+						if GetConVar( "cl_playermodel_selector_hide_defaults" ):GetBool() and DefaultPlayerModels[model] then continue end -- Testing, may have bugs.
 						if GetConVar( "cl_playermodel_selector_ignorehands" ):GetBool() and player_manager.TranslatePlayerHands(name).model == model then continue end -- No
 						local icon = ModelIconLayout:Add( "SpawnIcon" )
 						icon:SetSize( 64, 64 )
@@ -839,30 +759,10 @@ function Menu.Setup()
 
 		htb.Tab.IsHandsTab = true
 		
-		local t = handtab:Add( "DLabel" )
-			if GmodLanguage == "ru" then
-				t:SetPos( 160, 1 )
-			elseif GmodLanguage == "tr" then
-				t:SetPos( 140, 1 )
-			elseif GmodLanguage == "de" then
-				t:SetPos( 160, 1 )
-			else
-				t:SetPos( 129, 1 )
-			end
-			--t:SetSize( 100, 20 )
-			t:SetText( "#EPS.Search" )
-			
 			Menu.HandsFilter = handtab:Add( "DTextEntry" )
-			if GmodLanguage == "ru" then
-				Menu.HandsFilter:SetPos( 200, 1 )
-				Menu.HandsFilter:SetSize( 200, 20 )
-			elseif GmodLanguage == "de" then
-				Menu.HandsFilter:SetPos( 200, 1 )
-				Menu.HandsFilter:SetSize( 200, 20 )
-			else
-				Menu.HandsFilter:SetPos( 168, 1 )
-				Menu.HandsFilter:SetSize( 246, 20 )
-			end
+			Menu.HandsFilter:SetPlaceholderText( "#EPS.Search" )
+			Menu.HandsFilter:DockMargin( 8, 0, 8, 4 )
+			Menu.HandsFilter:Dock( TOP )
 			Menu.HandsFilter:SetUpdateOnType( true )
 			Menu.HandsFilter.OnValueChange = function() Menu.HandsPopulate() end
 			
@@ -924,7 +824,6 @@ function Menu.Setup()
 				local icon = ModelIconLayout:Add( "SpawnIcon" )
 				icon:SetSize( 64, 64 )
 				icon:SetSpawnIcon( "icon64/playermodel.png" )
-				--icon:SetModel( model )
 				icon:SetTooltip( "#EPS.Hands.UsePM" )
 				icon.DoClick = function()
 					RunConsoleCommand( "cl_playerhands", "" )
@@ -933,7 +832,6 @@ function Menu.Setup()
 					timer.Simple( 0.1, function() Menu.UpdateFromConvars() end )
 				end
 						
-				ModelList:AddLine( name, model )
 				local exister = {}
 				
 				for name, model in SortedPairs( AllModels ) do
@@ -1111,18 +1009,6 @@ function Menu.Setup()
 					
 				end
 
-				--local thelabel = ModelIconLayout:Add( "DLabel" )
-				--thelabel:SetText("")
-				--function thelabel:Paint( w, h )
-				--	local old = DisableClipping( true )
-				--	local ox, oy = self:GetParent():LocalToScreen()
-
-				--	local nx, ny = self:ScreenToLocal( ox, oy )
-				--	ny = 0 + 64
-				--	draw.SimpleText("Icons may not generate because of jank with spawnicon generation,", "DermaDefault", nx, ny + 0, color_black)
-				--	draw.SimpleText("particularly when others are generating.", "DermaDefault", nx, ny + 12, color_black)
-				--	draw.SimpleText("Press RIGHT-CLICK on an icon to regenerate it manually.", "DermaDefault", nx, ny + 24, color_black)
-				--	DisableClipping( old )
 			end
 			
 			Menu.HandsPopulate()
@@ -1137,11 +1023,7 @@ function Menu.Setup()
 		FavList:SetMultiSelect( true )
 		FavList:AddColumn( "#EPS.Favorites" )
 		FavList:AddColumn( "#EPS.Favorites.Model" )
-		if GmodLanguage == "ru" or GmodLanguage == "pl" then
-			FavList:AddColumn( "#EPS.Favorites.Skin" ):SetFixedWidth( 40 )
-		else
-			FavList:AddColumn( "#EPS.Favorites.Skin" ):SetFixedWidth( 25 )
-		end
+		FavList:AddColumn( "#EPS.Favorites.Skin" ):SetFixedWidth( 40 )
 		FavList:AddColumn( "#EPS.Favorites.Bodygroups" )
 		FavList.DoDoubleClick = function( id, sel )
 			local name = tostring( FavList:GetLine( sel ):GetValue( 1 ) )
@@ -2310,13 +2192,13 @@ end
 function Menu.Toggle()
 	if LocalPlayer():IsAdmin() or GAMEMODE_NAME == "sandbox" or GetConVar( "sv_playermodel_selector_gamemodes" ):GetBool()
 	then
-		if IsValid( Frame ) then
-			Frame:ToggleVisible()
+		if IsValid( MainWindow ) then
+			MainWindow:ToggleVisible()
 		else
 			Menu.Setup()
 		end
 	else
-		if IsValid( Frame ) then Frame:Close() end
+		if IsValid( MainWindow ) then MainWindow:Close() end
 	end
 end
 
