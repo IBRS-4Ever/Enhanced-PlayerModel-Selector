@@ -210,42 +210,42 @@ local function UpdatePlayerModel( ply )
 		timer.Simple( 0.1, function() if ply.SetupHands and isfunction( ply.SetupHands ) then ply:SetupHands() end end )
 		timer.Simple( 0.2, function()
 			if ply:GetInfo( "cl_playerhands" ) != "" then mdlname = ply:GetInfo( "cl_playerhands" ) end
-			local mdlhands = player_manager.TranslatePlayerHands( mdlname )
+			local HandsModel = player_manager.TranslatePlayerHands( mdlname )
 			
-			local hands_ent = ply:GetHands()
-			if hands_ent and mdlhands and istable( mdlhands ) then
-				if hands_ent:GetModel() != mdlhands.model then
+			local HandsEntity = ply:GetHands()
+			if HandsEntity and HandsModel and istable( HandsModel ) then
+				if HandsEntity:GetModel() != HandsModel.model then
 					if debugmode then print( "LF_PMS: SetupHands failed. Gamemode doesn't implement this function correctly. Trying workaround..." ) end
-					if ( IsValid( hands_ent ) ) then
-						hands_ent:SetModel( mdlhands.model )
-						hands_ent:SetSkin( mdlhands.skin )
-						hands_ent:SetBodyGroups( mdlhands.body )
+					if ( IsValid( HandsEntity ) ) then
+						HandsEntity:SetModel( HandsModel.model )
+						HandsEntity:SetSkin( HandsModel.skin )
+						HandsEntity:SetBodyGroups( HandsModel.body )
 
 						local skin = ply:GetInfoNum( "cl_playerhandsskin", 0 )
-						hands_ent:SetSkin( skin )
+						HandsEntity:SetSkin( skin )
 						if debugmode then print( "LF_PMS: Set hands model skin to no.: "..tostring( skin ) ) end
 		
 						local groups = ply:GetInfo( "cl_playerhandsbodygroups" )
 						if ( groups == nil ) then groups = "" end
 						local groups = string.Explode( " ", groups )
-						for k = 0, hands_ent:GetNumBodyGroups() - 1 do
+						for k = 0, HandsEntity:GetNumBodyGroups() - 1 do
 							local v = tonumber( groups[ k + 1 ] ) or 0
-							hands_ent:SetBodygroup( k, v )
+							HandsEntity:SetBodygroup( k, v )
 							if debugmode then print( "LF_PMS: Set hands bodygroup no. "..tostring( k ).." to: "..tostring( v ) ) end
 						end
 
 						if debugmode then
 							timer.Simple( 0.2, function()
-								if hands_ent:GetModel() != mdlhands.model then
+								if HandsEntity:GetModel() != HandsModel.model then
 									print( "LF_PMS: Workaround failed. Unable to setup viewmodel hands. Please check for incompatible addons." )
 								else
-									print( "LF_PMS: Workaround successful. Hands set to: "..mdlhands.model )
+									print( "LF_PMS: Workaround successful. Hands set to: "..HandsModel.model )
 								end
 							end )
 						end
 					end
 				else
-					if debugmode then print( "LF_PMS: SetupHands successful. Hands set to: "..tostring( mdlhands.model ) ) end
+					if debugmode then print( "LF_PMS: SetupHands successful. Hands set to: "..tostring( HandsModel.model ) ) end
 				end
 			else
 				if debugmode then print( "LF_PMS: ERROR - SetupHands failed. player_manager.TranslatePlayerHands didn't return valid data. Please check for incompatible addons." ) end
@@ -546,12 +546,11 @@ function Menu.Setup()
 			MainWindow:SetSize( ScrW(), ScrH() )
 			MainWindow:Center()
 			MainWindow:SetDraggable( false )
-	
-			Menu.ApplyButton:SetPos( ScrW() - (ApplyButtonWidth + 480), 30 )
+			Menu.ApplyButton:SetPos( ScrW() - (ApplyButtonWidth + 480), 0 )
 			Menu.WorkshopButton:SetPos( ScrW() - (WorkshopButtonWidth + 110), 6 )
 			
-			Menu.ResetButton:SetPos( 5, ScrH() - 25 )
-			Menu.AnimButton:SetPos( 20 + ResetButtonWidth, ScrH() - 25 )
+			Menu.ResetButton:SetPos( 5, ScrH() - 60 )
+			Menu.AnimButton:SetPos( 20 + ResetButtonWidth, ScrH() - 60 )
 			maxi_mode = 1
 		elseif maxi_allowed and maxi_mode == 1 then
 			Menu.ApplyButton:SetVisible( false )
@@ -566,10 +565,10 @@ function Menu.Setup()
 			MainWindow:Center()
 			MainWindow:SetDraggable( true )
 
-			Menu.ApplyButton:SetPos( fw - (ApplyButtonWidth + 480), 30 )
+			Menu.ApplyButton:SetPos( fw - (ApplyButtonWidth + 480), 0 )
 			Menu.ApplyButton:SetVisible( true )
-			Menu.ResetButton:SetPos( 5, fh - 25 )
-			Menu.AnimButton:SetPos( 20 + ResetButtonWidth, fh - 25 )
+			Menu.ResetButton:SetPos( 5, fh - 60 )
+			Menu.AnimButton:SetPos( 20 + ResetButtonWidth, fh - 60 )
 			Menu.ResetButton:SetVisible( true )
 			Menu.AnimButton:SetVisible( true )
 			Menu.WorkshopButton:SetPos( fw - (WorkshopButtonWidth + 110), 6 )
@@ -579,25 +578,25 @@ function Menu.Setup()
 		end
 	end
 
-	local mdl = MainWindow:Add( "DModelPanel" )
-	mdl:Dock( FILL )
-	mdl:SetFOV( 36 ) -- PM FOV
-	mdl:SetCamPos( Vector( 0, 0, 0 ) )
-	mdl:SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
-	mdl:SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255, 255 ) )
-	mdl:SetAmbientLight( Vector( -64, -64, -64 ) )
-	mdl:SetAnimated( true )
-	mdl:SetLookAt( Vector( -100, 0, -22 ) )
-	function mdl.DefaultPos()
+	local ModelPreview = MainWindow:Add( "DModelPanel" )
+	ModelPreview:Dock( FILL )
+	ModelPreview:SetFOV( 36 ) -- PM FOV
+	ModelPreview:SetCamPos( Vector( 0, 0, 0 ) )
+	ModelPreview:SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
+	ModelPreview:SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255, 255 ) )
+	ModelPreview:SetAmbientLight( Vector( -64, -64, -64 ) )
+	ModelPreview:SetAnimated( true )
+	ModelPreview:SetLookAt( Vector( -100, 0, -22 ) )
+	function ModelPreview.DefaultPos()
 		if ( Menu.IsHandsTabActive() ) then return end
 
-		mdl.Angles = Angle( 0, 0, 0 )
-		mdl.Pos = Vector( -100, 0, -61 )
-		mdl.AngleOffset = Angle( 0, 0, 0 )
+		ModelPreview.Angles = Angle( 0, 0, 0 )
+		ModelPreview.Pos = Vector( -100, 0, -61 )
+		ModelPreview.AngleOffset = Angle( 0, 0, 0 )
 	end
-	mdl.DefaultPos()
+	ModelPreview.DefaultPos()
 
-	function mdl:PreDrawModel( mdlEnt )
+	function ModelPreview:PreDrawModel( mdlEnt )
 		if ( IsValid( self.EntityHands ) and Menu.IsHandsTabActive() ) then
 			if ( not self.EntityHands:IsEffectActive( EF_BONEMERGE ) ) then
 				self.EntityHands:AddEffects( EF_BONEMERGE )
@@ -620,29 +619,29 @@ function Menu.Setup()
 		SetClipboardText( "https://steamcommunity.com/sharedfiles/filedetails/?id=2247755443" )
 	end
 	
-	Menu.ApplyButton = MainWindow:Add( "DButton" )
+	Menu.ApplyButton = ModelPreview:Add( "DButton" )
 	Menu.ApplyButton:SetText( "#EPS.ApplyPM" )
 	local ApplyButtonWidth, ApplyButtonHeight = Menu.ApplyButton:GetTextSize()
-	Menu.ApplyButton:SetPos( fw - (ApplyButtonWidth + 480), 30 )
+	Menu.ApplyButton:SetPos( fw - (ApplyButtonWidth + 480), 0 )
 	Menu.ApplyButton:SetSize( ApplyButtonWidth + 30, 30 )
 	Menu.ApplyButton:SetEnabled( LocalPlayer():IsAdmin() or GetConVar( "sv_playermodel_selector_instantly" ):GetBool() )
 	Menu.ApplyButton.DoClick = LoadPlayerModel
 	
-	Menu.ResetButton = MainWindow:Add( "DButton" )
+	Menu.ResetButton = ModelPreview:Add( "DButton" )
 	Menu.ResetButton:SetText( "#EPS.Reset" )
 	local ResetButtonWidth, ResetButtonHeight = Menu.ResetButton:GetTextSize()
 	Menu.ResetButton:SetSize( ResetButtonWidth + 8, 20 )
-	Menu.ResetButton:SetPos( 5, fh - 25 )
-	Menu.ResetButton.DoClick = mdl.DefaultPos
+	Menu.ResetButton:SetPos( 5, fh - 60 )
+	Menu.ResetButton.DoClick = ModelPreview.DefaultPos
 	
-	Menu.AnimButton = MainWindow:Add( "DButton" )
+	Menu.AnimButton = ModelPreview:Add( "DButton" )
 	Menu.AnimButton:SetText( "#EPS.NextAnim" )
 	local AnimButtonWidth, AnimButtonHeight = Menu.AnimButton:GetTextSize()
 	Menu.AnimButton:SetSize( AnimButtonWidth + 8, 20 )
-	Menu.AnimButton:SetPos( 20 + ResetButtonWidth, fh - 25 )
+	Menu.AnimButton:SetPos( 20 + ResetButtonWidth, fh - 60 )
 	Menu.AnimButton.DoClick = function()
 		currentanim = (currentanim + 1) % (#default_animations)
-		Menu.PlayPreviewAnimation( mdl, LocalPlayer():GetInfo( "cl_playermodel" ) )
+		Menu.PlayPreviewAnimation( ModelPreview, LocalPlayer():GetInfo( "cl_playermodel" ) )
 	end
 	
 	Menu.Right = MainWindow:Add( "DPropertySheet" )
@@ -933,12 +932,15 @@ function Menu.Setup()
 								render.OverrideBlend( false )
 								render.SuppressEngineLighting(false)
 
-								if CL_REALHANDS:GetNumBodyGroups() > 1 then
+								local HandBodygroups = CL_REALHANDS:GetBodyGroups()
+								for i = 0, #HandBodygroups - 1 do
+									if CL_REALHANDS:GetBodygroupCount(i) < 2 then continue end
 									cam.Start2D()
 										surface.SetDrawColor( 255, 255, 255, 255 )
 										surface.SetMaterial(hasbgs)
 										surface.DrawTexturedRect(0, 0, 64, 64)
 									cam.End2D()
+									break
 								end
 								print( "Generating " .. result.model:StripExtension() )
 								local data = render.Capture( {
@@ -1808,7 +1810,7 @@ function Menu.Setup()
 
 		if ( pnl.type == "bgroup" ) then
 
-			if ( not handsTabActive ) then mdl.Entity:SetBodygroup( pnl.typenum, math.Round( val ) ) end
+			if ( not handsTabActive ) then ModelPreview.Entity:SetBodygroup( pnl.typenum, math.Round( val ) ) end
 
 			local str = string.Explode( " ", GetConVar( "cl_playerbodygroups" ):GetString() )
 			if ( #str < pnl.typenum + 1 ) then for i = 1, pnl.typenum + 1 do str[ i ] = str[ i ] or 0 end end
@@ -1817,7 +1819,7 @@ function Menu.Setup()
 		
 		elseif ( pnl.type == "flex" ) then
 
-			if ( not handsTabActive ) then mdl.Entity:SetFlexWeight( pnl.typenum, math.Round( val, 2 ) ) end
+			if ( not handsTabActive ) then ModelPreview.Entity:SetFlexWeight( pnl.typenum, math.Round( val, 2 ) ) end
 
 			local str = string.Explode( " ", GetConVar( "cl_playerflexes" ):GetString() )
 			if ( #str < pnl.typenum + 1 ) then for i = 1, pnl.typenum + 1 do str[ i ] = str[ i ] or 0 end end
@@ -1826,12 +1828,12 @@ function Menu.Setup()
 		
 		elseif ( pnl.type == "skin" ) then
 
-			if ( not handsTabActive ) then mdl.Entity:SetSkin( math.Round( val ) ) end
+			if ( not handsTabActive ) then ModelPreview.Entity:SetSkin( math.Round( val ) ) end
 			RunConsoleCommand( "cl_playerskin", math.Round( val ) )
 
 		elseif ( pnl.type == "h__bgroup" ) then
 
-			if true or ( handsTabActive ) then mdl.EntityHands:SetBodygroup( pnl.typenum, math.Round( val ) ) end
+			if true or ( handsTabActive ) then ModelPreview.EntityHands:SetBodygroup( pnl.typenum, math.Round( val ) ) end
 
 			local str = string.Explode( " ", GetConVar( "cl_playerhandsbodygroups" ):GetString() )
 			if ( #str < pnl.typenum + 1 ) then for i = 1, pnl.typenum + 1 do str[ i ] = str[ i ] or 0 end end
@@ -1840,7 +1842,7 @@ function Menu.Setup()
 		
 		elseif ( pnl.type == "h__skin" ) then
 
-			if true or ( handsTabActive ) then mdl.EntityHands:SetSkin( math.Round( val ) ) end
+			if true or ( handsTabActive ) then ModelPreview.EntityHands:SetSkin( math.Round( val ) ) end
 			RunConsoleCommand( "cl_playerhandsskin", math.Round( val ) )
 
 		end
@@ -1855,7 +1857,7 @@ function Menu.Setup()
 		h__bgtab.Tab:SetVisible( false )
 		flextab.Tab:SetVisible( false )
 
-		local nskins = mdl.Entity:SkinCount() - 1
+		local nskins = ModelPreview.Entity:SkinCount() - 1
 		if ( nskins > 0 ) then
 			local skins = vgui.Create( "DNumSlider" )
 			skins:Dock( TOP )
@@ -1870,31 +1872,31 @@ function Menu.Setup()
 			
 			bdcontrolspanel:AddItem( skins )
 
-			mdl.Entity:SetSkin( GetConVar( "cl_playerskin" ):GetInt() )
+			ModelPreview.Entity:SetSkin( GetConVar( "cl_playerskin" ):GetInt() )
 			
 			bgtab.Tab:SetVisible( true )
 		end
 
 		local groups = string.Explode( " ", GetConVar( "cl_playerbodygroups" ):GetString() )
-		for k = 0, mdl.Entity:GetNumBodyGroups() - 1 do
-			if ( mdl.Entity:GetBodygroupCount( k ) <= 1 ) then continue end
+		for k = 0, ModelPreview.Entity:GetNumBodyGroups() - 1 do
+			if ( ModelPreview.Entity:GetBodygroupCount( k ) <= 1 ) then continue end
 
 			local bgroup = vgui.Create( "DNumSlider" )
 			bgroup:Dock( TOP )
-			bgroup:SetText( Menu.MakeNiceName( mdl.Entity:GetBodygroupName( k ) ) )
+			bgroup:SetText( Menu.MakeNiceName( ModelPreview.Entity:GetBodygroupName( k ) ) )
 			bgroup:SetDark( true )
 			bgroup:SetTall( 50 )
 			bgroup:SetDecimals( 0 )
 			bgroup.type = "bgroup"
 			bgroup.typenum = k
-			bgroup:SetMax( mdl.Entity:GetBodygroupCount( k ) - 1 )
+			bgroup:SetMax( ModelPreview.Entity:GetBodygroupCount( k ) - 1 )
 			bgroup:SetValue( groups[ k + 1 ] or 0 )
 			-- bgroup.OnValueChanged = Menu.UpdateBodyGroups
 			
 			bdcontrolspanel:AddItem( bgroup )
 			
 			local tgroup
-			local submdls = mdl.Entity:GetBodyGroups()[k+1].submodels
+			local submdls = ModelPreview.Entity:GetBodyGroups()[k+1].submodels
 			if istable(submdls) then 
 				local mdl = submdls[tonumber(groups[ k + 1 ] or 0)] or "idk"
 				tgroup = vgui.Create( "DLabel" )
@@ -1906,7 +1908,7 @@ function Menu.Setup()
 			end
 
 			bgroup.OnValueChanged = function(something1, val)
-				local submdls = mdl.Entity:GetBodyGroups()[k+1].submodels
+				local submdls = ModelPreview.Entity:GetBodyGroups()[k+1].submodels
 				if istable(submdls) then
 					tgroup:SetText(Menu.MakeNiceName(submdls[math.Round(val)]) or "idk")
 				end
@@ -1914,14 +1916,14 @@ function Menu.Setup()
 				Menu.UpdateBodyGroups(something1, val) 
 			end
 			
-			mdl.Entity:SetBodygroup( k, groups[ k + 1 ] or 0 )
+			ModelPreview.Entity:SetBodygroup( k, groups[ k + 1 ] or 0 )
 			
 			bgtab.Tab:SetVisible( true )
 		end
 
 		-- Hands
-		if GetConVar( "cl_playerhands" ):GetString() and GetConVar( "cl_playerhands" ):GetString() != "" and ( IsValid( mdl.EntityHands ) ) then
-			local nskins = mdl.EntityHands:SkinCount() - 1
+		if GetConVar( "cl_playerhands" ):GetString() and GetConVar( "cl_playerhands" ):GetString() != "" and ( IsValid( ModelPreview.EntityHands ) ) then
+			local nskins = ModelPreview.EntityHands:SkinCount() - 1
 			if ( nskins > 0 ) then
 				local skins = vgui.Create( "DNumSlider" )
 				skins:Dock( TOP )
@@ -1936,31 +1938,31 @@ function Menu.Setup()
 				
 				h__bdcontrolspanel:AddItem( skins )
 
-				mdl.EntityHands:SetSkin( GetConVar( "cl_playerhandsskin" ):GetInt() )
+				ModelPreview.EntityHands:SetSkin( GetConVar( "cl_playerhandsskin" ):GetInt() )
 				
 				h__bgtab.Tab:SetVisible( true )
 			end
 
 			local groups = string.Explode( " ", GetConVar( "cl_playerhandsbodygroups" ):GetString() )
-			for k = 0, mdl.EntityHands:GetNumBodyGroups() - 1 do
-				if ( mdl.EntityHands:GetBodygroupCount( k ) <= 1 ) then continue end
+			for k = 0, ModelPreview.EntityHands:GetNumBodyGroups() - 1 do
+				if ( ModelPreview.EntityHands:GetBodygroupCount( k ) <= 1 ) then continue end
 
 				local bgroup = vgui.Create( "DNumSlider" )
 				bgroup:Dock( TOP )
-				bgroup:SetText( Menu.MakeNiceName( mdl.EntityHands:GetBodygroupName( k ) ) )
+				bgroup:SetText( Menu.MakeNiceName( ModelPreview.EntityHands:GetBodygroupName( k ) ) )
 				bgroup:SetDark( true )
 				bgroup:SetTall( 50 )
 				bgroup:SetDecimals( 0 )
 				bgroup.type = "h__bgroup"
 				bgroup.typenum = k
-				bgroup:SetMax( mdl.EntityHands:GetBodygroupCount( k ) - 1 )
+				bgroup:SetMax( ModelPreview.EntityHands:GetBodygroupCount( k ) - 1 )
 				bgroup:SetValue( groups[ k + 1 ] or 0 )
 				bgroup.OnValueChanged = Menu.UpdateBodyGroups
 				
 				h__bdcontrolspanel:AddItem( bgroup )
 
 				local tgroup
-				local submdls = mdl.EntityHands:GetBodyGroups()[k+1].submodels
+				local submdls = ModelPreview.EntityHands:GetBodyGroups()[k+1].submodels
 				if istable(submdls) then 
 					local mdl = submdls[tonumber(groups[ k + 1 ] or 0)] or "idk"
 					tgroup = vgui.Create( "DLabel" )
@@ -1972,14 +1974,14 @@ function Menu.Setup()
 				end
 	
 				bgroup.OnValueChanged = function(something1, val)
-					local submdls = mdl.EntityHands:GetBodyGroups()[k+1].submodels
+					local submdls = ModelPreview.EntityHands:GetBodyGroups()[k+1].submodels
 					if istable(submdls) then
 						tgroup:SetText(Menu.MakeNiceName(submdls[math.Round(val)]) or "idk")
 					end
 					
 					Menu.UpdateBodyGroups(something1, val) 
 				end
-				mdl.EntityHands:SetBodygroup( k, groups[ k + 1 ] or 0 )
+				ModelPreview.EntityHands:SetBodygroup( k, groups[ k + 1 ] or 0 )
 				
 				h__bgtab.Tab:SetVisible( true )
 			end
@@ -1996,15 +1998,15 @@ function Menu.Setup()
 			flexcontrolspanel:AddItem( t )
 			
 			local flexes = string.Explode( " ", GetConVar( "cl_playerflexes" ):GetString() )
-			for k = 0, mdl.Entity:GetFlexNum() - 1 do
-				if ( mdl.Entity:GetFlexNum( k ) <= 1 ) then continue end
+			for k = 0, ModelPreview.Entity:GetFlexNum() - 1 do
+				if ( ModelPreview.Entity:GetFlexNum( k ) <= 1 ) then continue end
 
 				local flex = vgui.Create( "DNumSlider" )
-				local vmin, vmax = mdl.Entity:GetFlexBounds( k )
+				local vmin, vmax = ModelPreview.Entity:GetFlexBounds( k )
 				local default = 0
 				if vmin == -1 and vmax == 1 then default = 0.5 end
 				flex:Dock( TOP )
-				flex:SetText( Menu.MakeNiceName( mdl.Entity:GetFlexName( k ) ) )
+				flex:SetText( Menu.MakeNiceName( ModelPreview.Entity:GetFlexName( k ) ) )
 				flex:SetDark( true )
 				flex:SetTall( 30 )
 				flex:SetDecimals( 2 )
@@ -2017,7 +2019,7 @@ function Menu.Setup()
 				
 				flexcontrolspanel:AddItem( flex )
 
-				mdl.Entity:SetFlexWeight( k, flexes[ k + 1 ] or default )
+				ModelPreview.Entity:SetFlexWeight( k, flexes[ k + 1 ] or default )
 				
 				flextab.Tab:SetVisible( true )
 			end
@@ -2030,42 +2032,42 @@ function Menu.Setup()
 	local handsAnimModel = Model( "models/weapons/chand_checker.mdl" )
 
 	function Menu.UpdateFromConvars()
-		if ( IsValid( mdl.EntityHands ) ) then
-			mdl.EntityHands:Remove()
+		if ( IsValid( ModelPreview.EntityHands ) ) then
+			ModelPreview.EntityHands:Remove()
 		end
-		if ( IsValid( mdl.EntityHandsAnim ) ) then
-			mdl.EntityHandsAnim:Remove()
+		if ( IsValid( ModelPreview.EntityHandsAnim ) ) then
+			ModelPreview.EntityHandsAnim:Remove()
 		end
-		mdl.EntityHandsAnim = ClientsideModel( handsAnimModel, RENDERGROUP_OTHER )
-		mdl.EntityHandsAnim:SetNoDraw( true )
-		mdl.EntityHandsAnim:SetPos( Vector( 0, 0, 0 ) )
+		ModelPreview.EntityHandsAnim = ClientsideModel( handsAnimModel, RENDERGROUP_OTHER )
+		ModelPreview.EntityHandsAnim:SetNoDraw( true )
+		ModelPreview.EntityHandsAnim:SetPos( Vector( 0, 0, 0 ) )
 
 		if true or ( Menu.IsHandsTabActive() ) then
-			mdl:SetModel( handsAnimModel )
+			ModelPreview:SetModel( handsAnimModel )
 			local model = LocalPlayer():GetInfo( "cl_playerhands" )
 
 			if ( model == "" ) then
 				model = LocalPlayer():GetInfo( "cl_playermodel" )
 			end
 
-			local mdlhands = player_manager.TranslatePlayerHands( model )
+			local HandsModel = player_manager.TranslatePlayerHands( model )
 
-			util.PrecacheModel( mdlhands.model )
+			util.PrecacheModel( HandsModel.model )
 
-			mdl.EntityHands = ClientsideModel( mdlhands.model, RENDERGROUP_OTHER )
-			mdl.EntityHands:SetParent( mdl.EntityHandsAnim )
-			mdl.EntityHands:SetNoDraw( true )
+			ModelPreview.EntityHands = ClientsideModel( HandsModel.model, RENDERGROUP_OTHER )
+			ModelPreview.EntityHands:SetParent( ModelPreview.EntityHandsAnim )
+			ModelPreview.EntityHands:SetNoDraw( true )
 
-			local dumbassproof = mdlhands.skin
+			local dumbassproof = HandsModel.skin
 			if !isnumber( dumbassproof ) then
 				dumbassproof = 0
 			end
 
-			mdl.EntityHands:SetSkin( dumbassproof )
-			mdl.EntityHands:SetBodyGroups( mdlhands.body )
-			mdl.EntityHands.GetPlayerColor = function() return Vector( GetConVar( "cl_playercolor" ):GetString() ) end
+			ModelPreview.EntityHands:SetSkin( dumbassproof )
+			ModelPreview.EntityHands:SetBodyGroups( HandsModel.body )
+			ModelPreview.EntityHands.GetPlayerColor = function() return Vector( GetConVar( "cl_playercolor" ):GetString() ) end
 
-			Menu.PlayHandsPreviewAnimation( mdl, model )
+			Menu.PlayHandsPreviewAnimation( ModelPreview, model )
 			--Menu.RebuildBodygroupTab()
 			--return
 		end
@@ -2074,14 +2076,14 @@ function Menu.Setup()
 			local model = LocalPlayer():GetInfo( "cl_playermodel" )
 			local modelname = player_manager.TranslatePlayerModel( model )
 			util.PrecacheModel( modelname )
-			mdl:SetModel( modelname )
-			mdl.Entity.GetPlayerColor = function() return Vector( GetConVar( "cl_playercolor" ):GetString() ) end
-			mdl.Entity:SetPos( Vector( -100, 0, -61 ) )
+			ModelPreview:SetModel( modelname )
+			ModelPreview.Entity.GetPlayerColor = function() return Vector( GetConVar( "cl_playercolor" ):GetString() ) end
+			ModelPreview.Entity:SetPos( Vector( -100, 0, -61 ) )
 
 			plycol:SetVector( Vector( GetConVar( "cl_playercolor" ):GetString() ) )
 			wepcol:SetVector( Vector( GetConVar( "cl_weaponcolor" ):GetString() ) )
 
-			Menu.PlayPreviewAnimation( mdl, model )
+			Menu.PlayPreviewAnimation( ModelPreview, model )
 			Menu.RebuildBodygroupTab()
 		end
 
@@ -2101,19 +2103,19 @@ function Menu.Setup()
 
 	-- Hold to rotate
 
-	function mdl:DragMousePress( button )
+	function ModelPreview:DragMousePress( button )
 		self.PressX, self.PressY = gui.MousePos()
 		self.Pressed = button
 	end
 	
-	function mdl:OnMouseWheeled( delta )
+	function ModelPreview:OnMouseWheeled( delta )
 		self.WheelD = delta * -5
 		self.Wheeled = true
 	end
 
-	function mdl:DragMouseRelease() self.Pressed = false end
+	function ModelPreview:DragMouseRelease() self.Pressed = false end
 
-	function mdl:RunAnimation() -- override to restart hands animation
+	function ModelPreview:RunAnimation() -- override to restart hands animation
 		if ( Menu.IsHandsTabActive() and self.Entity:GetCycle() > 0.99 ) then
 			self.Entity:SetCycle( 0 )
 		end
@@ -2124,7 +2126,7 @@ function Menu.Setup()
 	local handsang = Angle( 0, 180, 0 )
 	local handspos = Vector( -2, 0, -2 )
 
-	function mdl:LayoutEntity( Entity )
+	function ModelPreview:LayoutEntity( Entity )
 		if ( self.bAnimated ) then self:RunAnimation() end
 
 		if ( Menu.IsHandsTabActive() ) then
