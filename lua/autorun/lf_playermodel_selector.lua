@@ -424,6 +424,7 @@ local function RRRotateAroundPoint(pos, ang, point, offset_ang)
 end
 
 CreateClientConVar( "cl_playermodel_selector_force", "1", true, true )
+CreateClientConVar( "cl_playermodel_selector_translate_bodygroup", "1", true, true )
 CreateClientConVar( "cl_playermodel_selector_hide_defaults", "0", true, true )
 CreateClientConVar( "cl_playermodel_selector_unlockflexes", "0", false, true )
 CreateClientConVar( "cl_playermodel_selector_bgcolor_custom", "1", true, true )
@@ -1231,6 +1232,25 @@ function Menu.Setup()
 			t:SetWrap( true )
 			
 			local c = panel:Add( "DCheckBoxLabel" )
+			c.cvar = "cl_playermodel_selector_translate_bodygroup"
+			c:Dock( TOP )
+			c:DockMargin( 0, 0, 0, 5 )
+			c:SetValue( GetConVar(c.cvar):GetBool() )
+			c:SetText( "#EPS.Settings.Client.TranslateBodygroup" )
+			c:SetDark( true )
+			c.OnChange = function( p, v )
+				RunConsoleCommand( c.cvar, v == true and "1" or "0" )
+			end
+			
+			local t = panel:Add( "DLabel" )
+			t:Dock( TOP )
+			t:DockMargin( 0, 0, 0, 20 )
+			t:SetAutoStretchVertical( true )
+			t:SetText( "#EPS.Settings.Client.TranslateBodygroup.Desc" )
+			t:SetDark( true )
+			t:SetWrap( true )
+			
+			local c = panel:Add( "DCheckBoxLabel" )
 			c.cvar = "cl_playermodel_selector_bgcolor_custom"
 			c:Dock( TOP )
 			c:DockMargin( 0, 0, 0, 5 )
@@ -1892,7 +1912,7 @@ function Menu.Setup()
 
 			local bgroup = vgui.Create( "DNumSlider" )
 			bgroup:Dock( TOP )
-			bgroup:SetText( Menu.MakeNiceName( ModelPreview.Entity:GetBodygroupName( k ) ) )
+			if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bodygroup_name."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) ) == "eps.model_bodygroup_name."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) then bgroup:SetText( Menu.MakeNiceName( ModelPreview.Entity:GetBodygroupName( k ) ) ) else bgroup:SetText( language.GetPhrase( "eps.model_bodygroup_name."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) ) ) end
 			bgroup:SetDark( true )
 			bgroup:SetTall( 50 )
 			bgroup:SetDecimals( 0 )
@@ -1911,15 +1931,27 @@ function Menu.Setup()
 				tgroup = vgui.Create( "DLabel" )
 				tgroup:Dock( TOP )
 				tgroup:DockMargin(10, -15, 0, 0)
-				tgroup:SetText( Menu.MakeNiceName( mdl ))
-				
+				mdl = string.Trim( mdl, "." )
+				mdl = string.Trim( mdl, "/" )
+				mdl = string.Trim( mdl, "\\" )
+				mdl = string.StripExtension( mdl )
+				mdl = string.GetFileFromFilename( mdl )
+
+				if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bodygroup_name."..string.lower(mdl) ) == "eps.model_bodygroup_name."..string.lower(mdl) then tgroup:SetText( Menu.MakeNiceName( mdl )) else tgroup:SetText( language.GetPhrase( "eps.model_bodygroup_name."..mdl ) ) end
+				--print(language.GetPhrase( "eps.model_bodygroup."..mdl ), language.GetPhrase( "eps.model_bodygroup."..Menu.MakeNiceName( mdl ) ) == "eps.model_bodygroup."..Menu.MakeNiceName( mdl ) )
 				bdcontrolspanel:AddItem( tgroup )
 			end
 
 			bgroup.OnValueChanged = function(something1, val)
 				local submdls = ModelPreview.Entity:GetBodyGroups()[k+1].submodels
 				if istable(submdls) then
-					tgroup:SetText(Menu.MakeNiceName(submdls[math.Round(val)]) or "idk")
+					local model = submdls[math.Round(val)]
+					model = string.Trim( model, "." )
+					model = string.Trim( model, "/" )
+					model = string.Trim( model, "\\" )
+					model = string.StripExtension( model )
+					model = string.GetFileFromFilename( model )
+					if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bodygroup_name."..string.lower(model) ) == "eps.model_bodygroup_name."..string.lower(model) then tgroup:SetText(Menu.MakeNiceName(model) or "idk") else tgroup:SetText(language.GetPhrase( "eps.model_bodygroup_name."..string.lower(model)) or "idk") end
 				end
 				
 				Menu.UpdateBodyGroups(something1, val) 
