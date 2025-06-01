@@ -1912,7 +1912,7 @@ function Menu.Setup()
 
 			local bgroup = vgui.Create( "DNumSlider" )
 			bgroup:Dock( TOP )
-			if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bodygroup_name."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) ) == "eps.model_bodygroup_name."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) then bgroup:SetText( Menu.MakeNiceName( ModelPreview.Entity:GetBodygroupName( k ) ) ) else bgroup:SetText( language.GetPhrase( "eps.model_bodygroup_name."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) ) ) end
+			if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bg."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) ) == "eps.model_bg."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) then bgroup:SetText( Menu.MakeNiceName( ModelPreview.Entity:GetBodygroupName( k ) ) ) else bgroup:SetText( language.GetPhrase( "eps.model_bg."..string.lower(ModelPreview.Entity:GetBodygroupName( k )) ) ) end
 			bgroup:SetDark( true )
 			bgroup:SetTall( 50 )
 			bgroup:SetDecimals( 0 )
@@ -1937,7 +1937,7 @@ function Menu.Setup()
 				mdl = string.StripExtension( mdl )
 				mdl = string.GetFileFromFilename( mdl )
 
-				if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bodygroup_name."..string.lower(mdl) ) == "eps.model_bodygroup_name."..string.lower(mdl) then tgroup:SetText( Menu.MakeNiceName( mdl )) else tgroup:SetText( language.GetPhrase( "eps.model_bodygroup_name."..mdl ) ) end
+				if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bg."..string.lower(mdl) ) == "eps.model_bg."..string.lower(mdl) then tgroup:SetText( Menu.MakeNiceName( mdl )) else tgroup:SetText( language.GetPhrase( "eps.model_bg."..mdl ) ) end
 				--print(language.GetPhrase( "eps.model_bodygroup."..mdl ), language.GetPhrase( "eps.model_bodygroup."..Menu.MakeNiceName( mdl ) ) == "eps.model_bodygroup."..Menu.MakeNiceName( mdl ) )
 				bdcontrolspanel:AddItem( tgroup )
 			end
@@ -1951,7 +1951,7 @@ function Menu.Setup()
 					model = string.Trim( model, "\\" )
 					model = string.StripExtension( model )
 					model = string.GetFileFromFilename( model )
-					if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bodygroup_name."..string.lower(model) ) == "eps.model_bodygroup_name."..string.lower(model) then tgroup:SetText(Menu.MakeNiceName(model) or "idk") else tgroup:SetText(language.GetPhrase( "eps.model_bodygroup_name."..string.lower(model)) or "idk") end
+					if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bg."..string.lower(model) ) == "eps.model_bg."..string.lower(model) then tgroup:SetText(Menu.MakeNiceName(model) or "idk") else tgroup:SetText(language.GetPhrase( "eps.model_bg."..string.lower(model)) or "idk") end
 				end
 				
 				Menu.UpdateBodyGroups(something1, val) 
