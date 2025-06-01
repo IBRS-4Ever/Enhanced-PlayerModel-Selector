@@ -1938,7 +1938,7 @@ function Menu.Setup()
 				mdl = string.GetFileFromFilename( mdl )
 
 				if !GetConVar("cl_playermodel_selector_translate_bodygroup"):GetBool() or language.GetPhrase( "eps.model_bg."..string.lower(mdl) ) == "eps.model_bg."..string.lower(mdl) then tgroup:SetText( Menu.MakeNiceName( mdl )) else tgroup:SetText( language.GetPhrase( "eps.model_bg."..mdl ) ) end
-				--print(language.GetPhrase( "eps.model_bodygroup."..mdl ), language.GetPhrase( "eps.model_bodygroup."..Menu.MakeNiceName( mdl ) ) == "eps.model_bodygroup."..Menu.MakeNiceName( mdl ) )
+				if GetConVar("sv_playermodel_selector_debug"):GetBool() and language.GetPhrase( "eps.model_bg."..string.lower(mdl) ) == "eps.model_bg."..string.lower(mdl) then print("eps.model_bg."..string.lower(mdl)) end
 				bdcontrolspanel:AddItem( tgroup )
 			end
 
