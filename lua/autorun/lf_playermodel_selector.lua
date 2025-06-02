@@ -869,7 +869,7 @@ function Menu.Setup()
 							CL_FISTS:ResetSequence( CL_FISTS:LookupSequence( "fists_idle_01" ) )
 
 							CL_REALHANDS:AddEffects( EF_BONEMERGE )
-							CL_REALHANDS:SetBodyGroups(result.body)
+							CL_REALHANDS:SetBodyGroups(result.body or 0)
 							CL_REALHANDS:SetSkin(isnumber(result.skin) and result.skin or 0)
 
 							CL_REALHANDS:SetParent( CL_FISTS )
