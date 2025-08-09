@@ -236,6 +236,7 @@ local function UpdatePlayerModel( ply )
 
 						if debugmode then
 							timer.Simple( 0.2, function()
+								if !IsValid(HandsEntity) then return end
 								if HandsEntity:GetModel() != HandsModel.model then
 									print( "LF_PMS: Workaround failed. Unable to setup viewmodel hands. Please check for incompatible addons." )
 								else
