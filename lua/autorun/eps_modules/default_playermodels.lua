@@ -97,5 +97,4 @@ DefaultPlayerModels = {
 	["models/player/urban.mdl"] = true,
 	["models/player/dod_german.mdl"] = true,
 	["models/player/dod_american.mdl"] = true
-	
 }
