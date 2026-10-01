@@ -361,22 +361,13 @@ if CLIENT then
 		return (language.GetPhrase(string.lower(text)) != string.lower(text) and language.GetPhrase(string.lower(text)) or false)
 	end
 
-	local Version = "Sep. 27th 2026"
+	local Version = "Oct. 1st 2026"
 	local Menu = { }
 	local MainWindow
 	local default_animations = { "idle_all_01", "menu_walk", "menu_combine", "pose_standing_02", "pose_standing_03", "idle_fist", "menu_gman", "idle_all_scared", "menu_zombie_01", "idle_magic", "walk_ar2" }
 	local currentanim = 0
 	local Favorites = { }
 	--local addon_vox = false
-
-	if !file.Exists( "lf_playermodel_selector", "DATA" ) then file.CreateDir( "lf_playermodel_selector" ) end
-	if file.Exists( "playermodel_selector_favorites.txt", "DATA" ) then -- Migrate from old version
-		if !file.Exists( "lf_playermodel_selector/cl_favorites.txt", "DATA" ) then
-			local content = file.Read( "playermodel_selector_favorites.txt", "DATA" )
-			file.Write( "lf_playermodel_selector/cl_favorites.txt", content )
-		end
-		file.Delete( "playermodel_selector_favorites.txt" )
-	end
 
 	if file.Exists( "lf_playermodel_selector/cl_favorites.txt", "DATA" ) then
 		local loaded = util.JSONToTable( file.Read( "lf_playermodel_selector/cl_favorites.txt", "DATA" ) )
@@ -2062,13 +2053,13 @@ if CLIENT then
 		end
 	end
 
-	concommand.Add( "enhanced_playermodel_selector", Menu.Toggle )
+	concommand.Add( "playermodel_selector", Menu.Toggle )
 
 	hook.Add( "PostGamemodeLoaded", "lf_playermodel_desktop_hook", function()
 			if GAMEMODE_NAME == "sandbox" then
 				list.GetForEdit( "DesktopWindows" ).PlayerEditor.init = function( icon, window )
 					window:Remove()
-					RunConsoleCommand( "enhanced_playermodel_selector" )
+					RunConsoleCommand( "playermodel_selector" )
 				end
 			else
 				list.Set( "DesktopWindows", "PlayerEditor", {
@@ -2076,7 +2067,7 @@ if CLIENT then
 					icon		= "icon64/playermodel.png",
 					init		= function( icon, window )
 						window:Remove()
-						RunConsoleCommand( "enhanced_playermodel_selector" )
+						RunConsoleCommand( "playermodel_selector" )
 					end
 				} )
 			end
